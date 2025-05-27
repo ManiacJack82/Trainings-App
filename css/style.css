@@ -1,77 +1,62 @@
-/* css/style.css */
-
+/* Allgemeines Styling */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #2e2e2e; /* Dunkelgrau */
+  background-color: #2e2e2e;
   color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  margin: 0;
 }
 
+/* Container für das Login-Formular */
 .container {
   background-color: #3c3c3c;
   padding: 2rem;
   border-radius: 15px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  width: 100%;
   max-width: 350px;
+  width: 90%;
   text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
 }
 
-h2 {
-  margin-bottom: 1.5rem;
-}
-
-input {
+/* Input-Felder und Buttons einheitlich groß */
+input, button {
   width: 100%;
-  padding: 0.8rem;
-  margin-bottom: 1rem;
-  border: none;
+  height: 44px;
+  margin: 10px 0;
   border-radius: 8px;
-  background-color: #4b4b4b;
-  color: white;
-  font-size: 1rem;
-}
-
-input::placeholder {
-  color: #aaa;
-}
-
-button {
-  width: 100%;
-  padding: 0.8rem;
-  margin-bottom: 1rem;
   border: none;
-  border-radius: 8px;
   font-size: 1rem;
-  cursor: pointer;
-  transition: 0.3s;
+  box-sizing: border-box;
+  display: block;
+  padding: 0 12px;
 }
 
+/* Buttons: Login */
 #loginBtn {
-  background-color: #e74c3c; /* Rot */
+  background-color: #e74c3c; /* kräftiges Rot */
   color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
-
 #loginBtn:hover {
   background-color: #c0392b;
 }
 
+/* Buttons: Registrieren */
 #registerBtn {
-  background-color: #95a5a6; /* Grau */
-  color: #2e2e2e;
+  background-color: #95a5a6; /* helles Grau */
+  color: #2e2e2e; /* dunkle Schrift für Kontrast */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
-
 #registerBtn:hover {
   background-color: #7f8c8d;
 }
 
-#message {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #f1c40f;
+/* Überschrift */
+h1 {
+  margin-bottom: 1.5rem;
 }
