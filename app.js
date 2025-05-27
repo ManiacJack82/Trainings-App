@@ -1,12 +1,35 @@
-// Authentifizierung absichern
-firebase.auth().onAuthStateChanged(user => {
+import { initializeApp } from "firebase/app";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC1HsJvWIYnBPCqSQS0ymOL0IEdZW8KDOY",
+  authDomain: "trainings-app-24eb7.firebaseapp.com",
+  projectId: "trainings-app-24eb7",
+  storageBucket: "trainings-app-24eb7.appspot.com",
+  messagingSenderId: "266317486009",
+  appId: "1:266317486009:web:730e7f91eaae69fb584868",
+  measurementId: "G-3EWQ7W9Z85"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser;
+
+// Authentifizierung
+onAuthStateChanged(auth, user => {
   if (!user) {
     window.location.href = "login.html";
+  } else {
+    currentUser = user;
+    loadEintraege();
   }
 });
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
-  firebase.auth().signOut().then(() => {
+  signOut(auth).then(() => {
     window.location.href = "login.html";
   });
 });
@@ -23,19 +46,151 @@ function switchTab(tabId) {
   }
 }
 
-// Datenhaltung
-const geraetSelect = document.getElementById("geraetSelect");
-const wdhInput = document.getElementById("wdh");
-const gewichtInput = document.getElementById("gewicht");
-const tbody = document.querySelector("#tabelle tbody");
-const tabelle = document.getElementById("tabelle");
+// Firestore Daten laden
+let eintraege = [];
 
-let eintraege = JSON.parse(localStorage.getItem("eintraege")) || [];
+async function loadEintraege() {
+  const q = query(
+    collection(db, "trainings"),
+    where("uid", "==", currentUser.uid),
+    orderBy("timestamp", "desc")
+  );
+  const querySnapshot = await getDocs(q);
+  eintraege = [];
+  querySnapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    eintraege.push({ ...data, id: docSnap.id });
+  });
+  updateUebungen();
+  renderTable();
+}
 
-let geraete = [...new Set(eintraege.map(e => e.geraet))];
-updateUebungen();
+// Übungen Dropdown
+let geraete = [];
 
 function updateUebungen() {
+  geraete = [...new Set(eintraege.map(e => e.geraet))];
+  const select = document.getElementById("geraetSelect");
+  select.innerHTML = "";
+  geraete.forEach(geraet => {
+    const opt = document.createElement("option");
+    opt.textContent = geraet;
+    select.appendChild(opt);
+  });
+}
+
+// Übung wechseln ⇒ letztes Gewicht/Wdh vorschlagen
+document.getElementById("geraetSelect").onchange = () => {
+  const geraet = document.getElementById("geraetSelect").value;
+  const letzter = eintraege.find(e => e.geraet === geraet);
+  if (letzter) {
+    document.getElementById("wdh").value = letzter.wdh;
+    document.getElementById("gewicht").value = letzter.gewicht;
+  }
+};
+
+// Formular absenden
+document.getElementById("trainingForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const geraet = document.getElementById("geraetSelect").value;
+  const wdh = Number(document.getElementById("wdh").value);
+  const gewicht = Number(document.getElementById("gewicht").value);
+  const datum = new Date().toLocaleString("de-DE");
+
+  if (!geraet || wdh <= 0 || gewicht <= 0) return;
+
+  const newEntry = {
+    uid: currentUser.uid,
+    geraet,
+    wdh,
+    gewicht,
+    datum,
+    timestamp: new Date()
+  };
+
+  await addDoc(collection(db, "trainings"), newEntry);
+  loadEintraege();
+  document.getElementById("trainingForm").reset();
+});
+
+// Tabelle anzeigen
+function renderTable() {
+  const tbody = document.querySelector("#tabelle tbody");
+  const table = document.getElementById("tabelle");
+  tbody.innerHTML = "";
+  table.hidden = eintraege.length === 0;
+
+  eintraege.forEach(entry => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${entry.datum}</td>
+      <td>${entry.geraet}</td>
+      <td>${entry.wdh}</td>
+      <td>${entry.gewicht} kg</td>
+      <td><button onclick="loescheEintrag('${entry.id}')">🗑️</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.loescheEintrag = async function (id) {
+  await deleteDoc(doc(db, "trainings", id));
+  loadEintraege();
+};
+
+// Charts
+let geraetChart, wochenChart;
+
+function renderCharts() {
+  const ctx1 = document.getElementById("geraetChart").getContext("2d");
+  const ctx2 = document.getElementById("wochenChart").getContext("2d");
+
+  const sumByGeraet = {};
+  eintraege.forEach(e => {
+    if (!sumByGeraet[e.geraet]) sumByGeraet[e.geraet] = 0;
+    sumByGeraet[e.geraet] += e.wdh * e.gewicht;
+  });
+
+  if (geraetChart) geraetChart.destroy();
+  geraetChart = new Chart(ctx1, {
+    type: "bar",
+    data: {
+      labels: Object.keys(sumByGeraet),
+      datasets: [{
+        label: "Trainingsvolumen",
+        data: Object.values(sumByGeraet),
+        backgroundColor: "rgba(0, 200, 150, 0.7)"
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+
+  const now = new Date();
+  const dailyVolume = Array(7).fill(0);
+  eintraege.forEach(e => {
+    const date = new Date(e.timestamp.toDate ? e.timestamp.toDate() : e.timestamp);
+    const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    if (diff < 7) {
+      dailyVolume[6 - diff] += e.wdh * e.gewicht;
+    }
+  });
+
+  if (wochenChart) wochenChart.destroy();
+  wochenChart = new Chart(ctx2, {
+    type: "line",
+    data: {
+      labels: ["6 Tage", "5", "4", "3", "2", "Gestern", "Heute"],
+      datasets: [{
+        label: "Volumen (7 Tage)",
+        data: dailyVolume,
+        borderColor: "rgba(0,200,150,0.9)",
+        tension: 0.3
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+}
+eUebungen() {
   geraetSelect.innerHTML = "";
   geraete.forEach(uebung => {
     const opt = document.createElement("option");
