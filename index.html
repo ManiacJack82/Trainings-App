@@ -156,6 +156,11 @@
             tbody.appendChild(row);
           });
           tabelle.hidden = eintraege.length === 0;
+
+          // Charts aktualisieren, falls Statistik-Tab aktiv
+          if (document.getElementById('statsTab').classList.contains('active')) {
+            renderCharts();
+          }
         });
       }
     });
@@ -210,6 +215,13 @@
         }
       });
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const activeTab = document.querySelector('.tab-content.active');
+      if (activeTab && activeTab.id === 'statsTab') {
+        renderCharts();
+      }
+    });
   </script>
   <style>
     body {
@@ -222,7 +234,6 @@
     }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    /* Weitere Styles wie im ursprünglichen Code */
   </style>
 </head>
 <body>
