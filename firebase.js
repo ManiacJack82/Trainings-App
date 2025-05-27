@@ -1,17 +1,21 @@
-// Firebase Config
+// firebase.js
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyC1HsJvWIYnBPCqSQS0ymOL0IEdZW8KDOY",
+  authDomain: "trainings-app-24eb7.firebaseapp.com",
+  projectId: "trainings-app-24eb7",
+  storageBucket: "trainings-app-24eb7.appspot.com",
+  messagingSenderId: "266317486009",
+  appId: "1:266317486009:web:730e7f91eaae69fb584868",
+  measurementId: "G-3EWQ7W9Z85"
 };
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-// Auth Listener
-firebase.auth().onAuthStateChanged(user => {
-  if (!user && location.pathname.includes("app.html")) {
-    location.href = "index.html";
-  }
-});
+const auth = getAuth(app);
+const db = getFirestore(app);
 
+export { auth, db };
