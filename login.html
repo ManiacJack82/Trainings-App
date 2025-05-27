@@ -2,58 +2,22 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login – Trainings App</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login / Registrierung</title>
+  <link rel="stylesheet" href="login.css" />
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script defer src="login.js"></script>
 </head>
 <body>
-  <div class="login-container">
-    <h1>Trainings App</h1>
-
-    <input type="email" id="email" placeholder="E-Mail" required />
+  <div class="container">
+    <h1>Anmeldung</h1>
+    <input type="email" id="email" placeholder="E-Mail Adresse" required />
     <input type="password" id="password" placeholder="Passwort" required />
-
-    <button onclick="login()">Login</button>
-    <button onclick="register()">Registrieren</button>
+    <button id="loginBtn">Login</button>
+    <button id="registerBtn">Registrieren</button>
+    <p id="message"></p>
   </div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="firebase.js"></script>
-
-  <script>
-    function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(() => {
-          window.location.href = "app.html";
-        })
-        .catch((error) => {
-          alert("Fehler beim Login: " + error.message);
-        });
-    }
-
-    function register() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then(() => {
-          alert("Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
-        })
-        .catch((error) => {
-          alert("Fehler bei der Registrierung: " + error.message);
-        });
-    }
-  </script>
-
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
-    }
-  </script>
 </body>
 </html>
+
