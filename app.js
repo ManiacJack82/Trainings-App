@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { auth, db } from "./firebase.js";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
 
