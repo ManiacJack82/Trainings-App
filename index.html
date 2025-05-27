@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trainings App</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="manifest" href="manifest.json" />
@@ -18,7 +18,6 @@
     }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
     }
     form, table, .custom-section, .tabs {
       background: rgba(255,255,255,0.1);
@@ -50,7 +49,7 @@
       cursor: pointer;
     }
     button:hover {
-      background-color: #009f6f;
+      background-color: #00a677;
     }
     table {
       width: 100%;
@@ -100,8 +99,8 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    .tab-header button.active {
-      background: #00c896;
+    .tab-header button:hover {
+      background: #00545a;
     }
     .tab-content {
       display: none;
@@ -110,109 +109,130 @@
       display: block;
     }
 
-    /* Login-Fenster Styling */
+    /* Login-Form */
     #loginForm {
       max-width: 400px;
-      margin: 0 auto 30px auto;
-      background: rgba(255,255,255,0.15);
+      margin: 20px auto 30px;
+      background: rgba(255, 255, 255, 0.15);
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.6);
     }
-    #loginForm label {
-      margin-top: 10px;
+    #loginForm input {
+      font-size: 1rem;
+      margin-bottom: 15px;
+    }
+    #loginForm button {
+      background-color: #0077b6;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 1.1rem;
+      width: 100%;
+    }
+    #loginForm button:hover {
+      background-color: #005f87;
+    }
+
+    /* Disable main UI before login */
+    #mainApp {
+      display: none;
+    }
+
+    /* Error message */
+    #loginError {
+      color: #ff4c4c;
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: none;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <h1>Trainings App</h1>
 
-  <!-- Login-Fenster -->
+  <!-- Login-Form -->
   <form id="loginForm">
-    <label for="email">E-Mail</label>
-    <input type="email" id="email" required placeholder="deine@mail.de" />
-    <label for="password">Passwort</label>
-    <input type="password" id="password" required placeholder="Passwort" />
-    <button type="submit">Login</button>
+    <div id="loginError">Falsche E-Mail oder Passwort</div>
+    <label for="email">E-Mail:</label>
+    <input type="email" id="email" required placeholder="name@beispiel.de" autocomplete="username" />
+    <label for="password">Passwort:</label>
+    <input type="password" id="password" required placeholder="Passwort" autocomplete="current-password" />
+    <button type="submit">Einloggen</button>
   </form>
 
-  <div class="tabs" style="display:none;" id="mainApp">
-    <div class="tab-header">
-      <button id="btnStats" class="active">📊 Statistiken</button>
-      <button id="btnTraining">📋 Training</button>
-    </div>
-    <div id="statsTab" class="tab-content active">
-      <canvas id="geraetChart"></canvas>
-      <canvas id="wochenChart" style="margin-top:20px;"></canvas>
-    </div>
-    <div id="formTab" class="tab-content">
-      <div class="custom-section" id="uebungenContainer">
-        <h3>Übung hinzufügen</h3>
-        <input id="neueUebung" placeholder="Name der Übung" />
-        <button id="hinzufuegenUebung">Hinzufügen</button>
-        <button id="toggleUebungen">Übungsliste ein-/ausklappen</button>
-        <ul id="uebungenList"></ul>
+  <!-- Haupt-App nur sichtbar nach Login -->
+  <div id="mainApp">
+    <div class="tabs">
+      <div class="tab-header">
+        <button onclick="switchTab('statsTab')">📊 Statistiken</button>
+        <button onclick="switchTab('formTab')">📋 Training</button>
       </div>
+      <div id="statsTab" class="tab-content">
+        <canvas id="geraetChart"></canvas>
+        <canvas id="wochenChart"></canvas>
+      </div>
+      <div id="formTab" class="tab-content active">
+        <div class="custom-section" id="uebungenContainer">
+          <h3>Übung hinzufügen</h3>
+          <input id="neueUebung" placeholder="Name der Übung" />
+          <button id="hinzufuegenUebung">Hinzufügen</button>
+          <button id="toggleUebungen">Übungsliste ein-/ausklappen</button>
+          <ul id="uebungenList"></ul>
+        </div>
 
-      <form id="trainingForm">
-        <label>Gerät:</label>
-        <select id="geraetSelect"></select>
+        <form id="trainingForm">
+          <label>Gerät:</label>
+          <select id="geraetSelect"></select>
 
-        <label>Wiederholungen:</label>
-        <input type="number" id="wdh" min="1" />
+          <label>Wiederholungen:</label>
+          <input type="number" id="wdh" min="1" />
 
-        <label>Gewicht (kg):</label>
-        <input type="number" id="gewicht" min="0" step="0.5" />
+          <label>Gewicht (kg):</label>
+          <input type="number" id="gewicht" min="0" step="0.5" />
 
-        <button type="submit">Eintragen</button>
-      </form>
+          <button type="submit">Eintragen</button>
+        </form>
 
-      <table id="tabelle" hidden>
-        <thead>
-          <tr><th>Datum</th><th>Gerät</th><th>Wdh</th><th>Gewicht</th><th>Aktion</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+        <table id="tabelle" hidden>
+          <thead>
+            <tr><th>Datum</th><th>Gerät</th><th>Wdh</th><th>Gewicht</th><th>Aktion</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <script>
-    // Login-Handling
+    // --- Login-Logik ---
     const loginForm = document.getElementById('loginForm');
     const mainApp = document.getElementById('mainApp');
+    const loginError = document.getElementById('loginError');
+
+    // Beispiel Login-Daten (hier nur zur Demo, im echten Einsatz serverseitig prüfen!)
+    const validUser = {
+      email: 'user@example.com',
+      password: '123456'
+    };
 
     loginForm.addEventListener('submit', e => {
       e.preventDefault();
-      // Hier kannst du Authentifizierung hinzufügen
-      // Für Demo einfach Login erlauben
-      loginForm.style.display = 'none';
-      mainApp.style.display = 'block';
-      ladeDaten();
-      renderCharts();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (email === validUser.email && password === validUser.password) {
+        loginError.style.display = 'none';
+        loginForm.style.display = 'none';
+        mainApp.style.display = 'block';
+        ladeDaten();
+      } else {
+        loginError.style.display = 'block';
+      }
     });
 
-    // Tabs
-    const btnStats = document.getElementById('btnStats');
-    const btnTraining = document.getElementById('btnTraining');
-
-    btnStats.onclick = () => switchTab('statsTab');
-    btnTraining.onclick = () => switchTab('formTab');
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      document.querySelectorAll('.tab-header button').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      document.getElementById(tabId).classList.add('active');
-      if (tabId === 'statsTab') btnStats.classList.add('active');
-      else btnTraining.classList.add('active');
-
-      if (tabId === 'statsTab') renderCharts();
-    }
-
-    // Trainingsapp-Variablen
+    // --- Haupt-App-Logik (bleibt wie gehabt) ---
     const geraetSelect = document.getElementById('geraetSelect');
     const wdhInput = document.getElementById('wdh');
     const gewichtInput = document.getElementById('gewicht');
@@ -224,7 +244,16 @@
     const eintraege = [];
     const uebungen = [];
 
-    // Übung hinzufügen
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+      if (tabId === 'statsTab') {
+        renderCharts();
+      }
+    }
+
     document.getElementById('hinzufuegenUebung').onclick = () => {
       const name = document.getElementById('neueUebung').value.trim();
       if (name && !uebungen.includes(name)) {
@@ -235,7 +264,6 @@
       }
     };
 
-    // Übungsliste anzeigen
     function updateUebungen() {
       geraetSelect.innerHTML = '';
       uebungen.forEach(uebung => {
@@ -248,7 +276,6 @@
       updateUebungenList();
     }
 
-    // Übungsliste mit Löschen
     function updateUebungenList() {
       const list = document.getElementById('uebungenList');
       list.innerHTML = '';
@@ -271,7 +298,6 @@
       document.getElementById('uebungenContainer').classList.toggle('collapsed');
     };
 
-    // Gerät auswählen füllt Eingabefelder ggf.
     geraetSelect.onchange = () => {
       const eintraegeZuUebung = eintraege.filter(e => e.geraet === geraetSelect.value);
       if (eintraegeZuUebung.length) {
@@ -284,7 +310,6 @@
       }
     };
 
-    // Trainings-Eintrag hinzufügen
     trainingForm.onsubmit = e => {
       e.preventDefault();
       const now = new Date();
@@ -292,11 +317,6 @@
       const geraet = geraetSelect.value;
       const wdh = Number(wdhInput.value);
       const gewicht = Number(gewichtInput.value);
-
-      if (!geraet || wdh <= 0 || gewicht < 0) {
-        alert("Bitte gültige Werte eingeben!");
-        return;
-      }
 
       eintraege.unshift({ datum, geraet, wdh, gewicht });
       speichereEintraege();
@@ -306,11 +326,9 @@
       geraetSelect.selectedIndex = -1;
     };
 
-    // Tabelle rendern
     function renderTable() {
       tbody.innerHTML = '';
       if (eintraege.length) tabelle.hidden = false;
-      else tabelle.hidden = true;
       eintraege.forEach(e => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -324,7 +342,6 @@
       });
     }
 
-    // Eintrag löschen
     function loescheEintrag(datum) {
       const index = eintraege.findIndex(e => e.datum === datum);
       if (index !== -1) {
@@ -334,7 +351,6 @@
       }
     }
 
-    // Speicherfunktionen
     function speichereEintraege() {
       localStorage.setItem('eintraege', JSON.stringify(eintraege));
     }
@@ -342,7 +358,6 @@
       localStorage.setItem('uebungen', JSON.stringify(uebungen));
     }
 
-    // Daten laden
     function ladeDaten() {
       const eintraegeLocal = JSON.parse(localStorage.getItem('eintraege'));
       if (eintraegeLocal) {
@@ -356,15 +371,7 @@
       renderTable();
     }
 
-    // Charts rendern
     function renderCharts() {
-      if (eintraege.length === 0) {
-        // Leere Charts anzeigen
-        if (geraetChart) geraetChart.destroy();
-        if (wochenChart) wochenChart.destroy();
-        return;
-      }
-
       // Geräte-Statistik
       const geraete = {};
       eintraege.forEach(e => {
@@ -392,15 +399,13 @@
         }
       });
 
-      // Wochen-Statistik (letzte 7 Tage)
+      // Wochen-Statistik
       const now = new Date();
       const wochen = new Array(7).fill(0);
       for (const e of eintraege) {
-        // Datum als Date-Objekt (DE Format dd.mm.yyyy)
-        const [tag, monat, jahr] = e.datum.split(' ')[0].split('.');
-        const datum = new Date(`${jahr}-${monat}-${tag}`);
+        const datum = new Date(e.datum.split(' ')[0].split('.').reverse().join('-'));
         const diff = Math.floor((now - datum) / (1000 * 3600 * 24));
-        if (diff >= 0 && diff < 7) {
+        if (diff < 7) {
           wochen[6 - diff] += e.wdh * e.gewicht;
         }
       }
@@ -424,9 +429,6 @@
         }
       });
     }
-
-    // Expose löschen-Funktion global (für inline onclick)
-    window.loescheEintrag = loescheEintrag;
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');
