@@ -2,58 +2,24 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login – Trainings App</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trainings App</title>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <div class="login-container">
+  <header>
     <h1>Trainings App</h1>
+    <button id="logoutBtn" class="btn">Logout</button>
+  </header>
 
-    <input type="email" id="email" placeholder="E-Mail" required />
-    <input type="password" id="password" placeholder="Passwort" required />
+  <main>
+    <section id="content">
+      <p>Willkommen zur App! Hier kannst du dein Training verwalten.</p>
+      <!-- Hier später dein App-Inhalt -->
+    </section>
+  </main>
 
-    <button onclick="login()">Login</button>
-    <button onclick="register()">Registrieren</button>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="firebase.js"></script>
-
-  <script>
-    function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(() => {
-          window.location.href = "app.html";
-        })
-        .catch((error) => {
-          alert("Fehler beim Login: " + error.message);
-        });
-    }
-
-    function register() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then(() => {
-          alert("Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
-        })
-        .catch((error) => {
-          alert("Fehler bei der Registrierung: " + error.message);
-        });
-    }
-  </script>
-
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
-    }
-  </script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
+
