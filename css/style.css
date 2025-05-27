@@ -1,4 +1,7 @@
 /* Grundlayout */
+body {
+  background-color: red !important;
+}
 body.app-page {
   margin: 0;
   font-family: Arial, sans-serif;
