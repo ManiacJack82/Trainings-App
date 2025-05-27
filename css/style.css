@@ -1,62 +1,39 @@
-/* Allgemeines Styling */
-body {
-  background-color: #2e2e2e;
-  color: white;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
+// js/auth.js
+import { auth } from './firebase-config.js';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-/* Container für das Login-Formular */
-.container {
-  background-color: #3c3c3c;
-  padding: 2rem;
-  border-radius: 15px;
-  max-width: 350px;
-  width: 90%;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(0,0,0,0.5);
-}
+// Referenzen zu DOM
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const loginBtn = document.getElementById("loginBtn");
+const registerBtn = document.getElementById("registerBtn");
+const message = document.getElementById("message");
 
-/* Input-Felder und Buttons einheitlich groß */
-input, button {
-  width: 90%;
-  height: 50px;
-  margin: 10px 0;
-  border-radius: 8px;
-  border: none;
-  font-size: 1rem;
-  box-sizing: border-box;
-  display: block;
-  padding: 0 12px;
-}
+// Login
+loginBtn.addEventListener("click", async () => {
+  const email = emailInput.value;
+  const password = passwordInput.value;
 
-/* Buttons: Login */
-#loginBtn {
-  background-color: #e74c3c; /* kräftiges Rot */
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-#loginBtn:hover {
-  background-color: #c0392b;
-}
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = "app.html"; // Weiter zur App
+  } catch (error) {
+    message.textContent = "Login fehlgeschlagen: " + error.message;
+  }
+});
 
-/* Buttons: Registrieren */
-#registerBtn {
-  background-color: #95a5a6; /* helles Grau */
-  color: #2e2e2e; /* dunkle Schrift für Kontrast */
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-#registerBtn:hover {
-  background-color: #7f8c8d;
-}
+// Registrierung
+registerBtn.addEventListener("click", async () => {
+  const email = emailInput.value;
+  const password = passwordInput.value;
 
-/* Überschrift */
-h1 {
-  margin-bottom: 1.5rem;
-}
+  try {
+    await createUserWithEmailAndPassword(auth, email, password);
+    message.textContent = "Registrierung erfolgreich! Bitte einloggen.";
+  } catch (error) {
+    message.textContent = "Registrierung fehlgeschlagen: " + error.message;
+  }
+});
