@@ -1,4 +1,4 @@
-/* Grundlayout */
+/* Allgemeines Layout */
 body.app-page {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -7,41 +7,58 @@ body.app-page {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   min-height: 100vh;
+  padding: 2rem;
 }
 
-.app-header {
-  width: 100%;
-  padding: 1rem;
-  background-color: #1e1e1e;
+h1 {
+  margin-bottom: 1rem;
+}
+
+.auth-container {
+  background-color: #3a3a3a;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 
-.logout-button {
+input[type="email"],
+input[type="password"] {
+  width: 250px;
+  padding: 0.6rem 1rem;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+}
+
+button {
+  padding: 0.6rem 1.2rem;
+  margin: 0.5rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
   background-color: #ff4d4d;
   color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 5px;
   cursor: pointer;
 }
 
-.logout-button:hover {
+button:hover {
   background-color: #e60000;
 }
 
-.app-main {
-  padding: 2rem;
-  width: 100%;
-  max-width: 600px;
+#message {
+  margin-top: 1rem;
+  color: #ffb3b3;
+  text-align: center;
 }
 
-.exercise-section {
-  margin-top: 2rem;
-  background-color: #3a3a3a;
-  padding: 1rem;
-  border-radius: 8px;
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
