@@ -1,58 +1,47 @@
-// js/auth.js
-import { auth } from './firebase-config.js';
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+/* Grundlayout */
+body.app-page {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #2c2c2c;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
 
-// Referenzen zu DOM
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const loginBtn = document.getElementById("loginBtn");
-const registerBtn = document.getElementById("registerBtn");
-const message = document.getElementById("message");
+.app-header {
+  width: 100%;
+  padding: 1rem;
+  background-color: #1e1e1e;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
 
-// Login
-loginBtn.addEventListener("click", async () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    window.location.href = "app.html"; // Weiter zur App
-  } catch (error) {
-    message.textContent = "Login fehlgeschlagen: " + error.message;
-  }
-});
-
-// Registrierung
-registerBtn.addEventListener("click", async () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-
-  try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    message.textContent = "Registrierung erfolgreich! Bitte einloggen.";
-  } catch (error) {
-    message.textContent = "Registrierung fehlgeschlagen: " + error.message;
-  }
-  /* Logout-Button modern stylen */
 .logout-button {
-  background-color: #e63946; /* rot-grau Kombination */
+  background-color: #ff4d4d;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  position: absolute;
-  top: 20px;
-  right: 20px;
 }
 
 .logout-button:hover {
-  background-color: #d62828;
+  background-color: #e60000;
 }
 
-});
+.app-main {
+  padding: 2rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.exercise-section {
+  margin-top: 2rem;
+  background-color: #3a3a3a;
+  padding: 1rem;
+  border-radius: 8px;
+}
