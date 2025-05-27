@@ -3,450 +3,294 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Trainings App</title>
+<title>Trainings App Testversion</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyC1HsJvWIYnBPCqSQS0ymOL0IEdZW8KDOY",
-  authDomain: "trainings-app-24eb7.firebaseapp.com",
-  projectId: "trainings-app-24eb7",
-  storageBucket: "trainings-app-24eb7.appspot.com",
-  messagingSenderId: "266317486009",
-  appId: "1:266317486009:web:730e7f91eaae69fb584868",
-  measurementId: "G-3EWQ7W9Z85",
-  databaseURL: "https://trainings-app-24eb7-default-rtdb.europe-west1.firebasedatabase.app"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getDatabase(app);
-
-let currentUser = null;
-const eintraege = [];
-
-const emailInput = document.getElementById('emailInput');
-const passInput = document.getElementById('passInput');
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-
-const geraetSelect = document.getElementById('geraetSelect');
-const wdhInput = document.getElementById('wdh');
-const gewichtInput = document.getElementById('gewicht');
-
-const tabelle = document.getElementById('tabelle');
-const tbody = tabelle.querySelector('tbody');
-
-let geraetChart, wochenChart;
-
-loginBtn.onclick = () => {
-  const email = emailInput.value.trim();
-  const pass = passInput.value.trim();
-  if(!email || !pass) {
-    alert('Bitte E-Mail und Passwort eingeben');
-    return;
-  }
-  signInWithEmailAndPassword(auth, email, pass)
-    .catch(err => alert('Login Fehler: ' + err.message));
-};
-
-logoutBtn.onclick = () => {
-  signOut(auth);
-};
-
-onAuthStateChanged(auth, user => {
-  currentUser = user;
-  if (user) {
-    document.getElementById('loginContainer').style.display = 'none';
-    logoutBtn.style.display = 'inline-block';
-    loadEntries();
-  } else {
-    document.getElementById('loginContainer').style.display = 'block';
-    logoutBtn.style.display = 'none';
-    eintraege.length = 0;
-    tbody.innerHTML = '';
-    tabelle.style.display = 'none';
-    switchTab('formTab'); // Form anzeigen nach Logout
-  }
-});
-
-function loadEntries() {
-  const refEintraege = ref(db, `users/${currentUser.uid}/eintraege`);
-  onValue(refEintraege, snapshot => {
-    eintraege.length = 0;
-    tbody.innerHTML = '';
-    snapshot.forEach(child => {
-      eintraege.push(child.val());
-    });
-    // Sortiere neu: neueste zuerst
-    eintraege.sort((a,b) => new Date(b.datum) - new Date(a.datum));
-
-    // Tabelle füllen
-    renderTable();
-
-    // Statistik ggf. neu zeichnen wenn Tab offen
-    if(document.getElementById('statsTab').classList.contains('active')) {
-      renderCharts();
-    }
-  });
-}
-
-function renderTable() {
-  tbody.innerHTML = '';
-
-  // Für Gewicht-Vergleich pro Gerät letzte Werte merken
-  const lastGewicht = {};
-
-  for(let i = 0; i < eintraege.length; i++) {
-    const e = eintraege[i];
-    // Datum schön formatieren
-    let datumText = e.datum;
-    // Gewicht Vergleichspfeile
-    let pfeil = '';
-    const prevGewicht = lastGewicht[e.geraet];
-    if(prevGewicht !== undefined) {
-      if(e.gewicht > prevGewicht) {
-        pfeil = ' <span style="color:#0f0;">&#9650;</span>'; // grün ↑
-      } else if (e.gewicht < prevGewicht) {
-        pfeil = ' <span style="color:#f00;">&#9660;</span>'; // rot ↓
-      }
-    }
-    lastGewicht[e.geraet] = e.gewicht;
-
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${datumText}</td>
-      <td>${e.geraet}</td>
-      <td>${e.wdh}</td>
-      <td>${e.gewicht} kg${pfeil}</td>
-    `;
-    tbody.appendChild(row);
-  }
-  // Tabelle nur anzeigen, wenn Einträge da sind
-  tabelle.style.display = eintraege.length > 0 ? 'table' : 'none';
-}
-
-// Eingabe automatisch speichern wenn Änderung
-function saveCurrentEntry() {
-  if(!currentUser) return;
-  const geraet = geraetSelect.value;
-  const wdh = Number(wdhInput.value);
-  const gewicht = Number(gewichtInput.value);
-
-  if(!geraet || !wdh || wdh < 1 || isNaN(gewicht) || gewicht < 0) return;
-
-  const now = new Date();
-  const datum = now.toISOString(); // ISO Format für einfaches Sortieren
-
-  const eintrag = { datum, geraet, wdh, gewicht };
-
-  // Speichern in Firebase
-  const eintragRef = push(ref(db, `users/${currentUser.uid}/eintraege`));
-  set(eintragRef, eintrag)
-    .then(() => {
-      // Optional: Eingabefelder zurücksetzen oder belassen
-      wdhInput.value = '';
-      gewichtInput.value = '';
-      geraetSelect.selectedIndex = 0;
-    });
-}
-
-geraetSelect.addEventListener('change', saveCurrentEntry);
-wdhInput.addEventListener('input', () => {
-  // nur speichern wenn valider Wert
-  if(wdhInput.value > 0) saveCurrentEntry();
-});
-gewichtInput.addEventListener('input', () => {
-  if(gewichtInput.value >= 0) saveCurrentEntry();
-});
-
-// Charts zeichnen
-function renderCharts() {
-  // Geräte-Gewichtsverlauf
-  const dataPerGeraet = {};
-  // Trainings pro Woche
-  const trainingsPerWeek = {};
-
-  eintraege.forEach(e => {
-    // Geräte Daten sammeln
-    if(!dataPerGeraet[e.geraet]) dataPerGeraet[e.geraet] = [];
-    dataPerGeraet[e.geraet].push({ x: new Date(e.datum), y: e.gewicht });
-
-    // Trainings pro Kalenderwoche berechnen
-    const d = new Date(e.datum);
-    const year = d.getFullYear();
-    const week = getWeekNumber(d);
-    const key = `${year}-W${week}`;
-    trainingsPerWeek[key] = (trainingsPerWeek[key] || 0) + 1;
-  });
-
-  // Sortieren Daten nach Datum für Linienchart
-  for(const g in dataPerGeraet) {
-    dataPerGeraet[g].sort((a,b) => a.x - b.x);
-  }
-
-  // Geräte Chart
-  const ctxG = document.getElementById('geraetChart').getContext('2d');
-  if(geraetChart) geraetChart.destroy();
-  geraetChart = new Chart(ctxG, {
-    type: 'line',
-    data: {
-      datasets: Object.keys(dataPerGeraet).map(geraet => ({
-        label: geraet,
-        data: dataPerGeraet[geraet].map(p => ({ x: p.x.toLocaleDateString('de-DE'), y: p.y })),
-        borderColor: randomColor(geraet),
-        fill: false,
-        tension: 0.2
-      }))
-    },
-    options: {
-      responsive: true,
-      plugins: { title: { display: true, text: 'Gewichtsverlauf je Gerät' } },
-      scales: {
-        x: { title: { display: true, text: 'Datum' } },
-        y: { title: { display: true, text: 'Gewicht (kg)' }, beginAtZero: true }
-      }
-    }
-  });
-
-  // Trainings pro Woche Chart
-  const ctxW = document.getElementById('wochenChart').getContext('2d');
-  if(wochenChart) wochenChart.destroy();
-  wochenChart = new Chart(ctxW, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(trainingsPerWeek).sort(),
-      datasets: [{
-        label: 'Trainings pro Woche',
-        data: Object.keys(trainingsPerWeek).sort().map(k => trainingsPerWeek[k]),
-        backgroundColor: '#007bff'
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { title: { display: true, text: 'Trainingshäufigkeit pro Woche' } },
-      scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Anzahl' } },
-        x: { title: { display: true, text: 'Kalenderwoche' } }
-      }
-    }
-  });
-}
-
-// Kalenderwoche ermitteln (ISO 8601)
-function getWeekNumber(d) {
-  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-  return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
-}
-
-// Zufällige Farbe aus String (für Chart)
-function randomColor(str) {
-  let hash = 0;
-  for(let i=0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-  return "#" + "00000".substring(0, 6 - c.length) + c;
-}
-
-// Tabs
-function switchTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  if(tabId === 'statsTab') {
-    renderCharts();
-  }
-}
-window.switchTab = switchTab;
-
-// Geräte Auswahl mit Beispiel-Geräten füllen
-function initGeraete() {
-  const geraeteListe = ["Bankdrücken", "Kniebeugen", "Klimmzüge", "Deadlift", "Schulterdrücken"];
-  geraeteSelect.innerHTML = '<option value="">-- Gerät wählen --</option>';
-  geraeteListe.forEach(g => {
-    const opt = document.createElement('option');
-    opt.value = g;
-    opt.textContent = g;
-    geraeteSelect.appendChild(opt);
-  });
-}
-
-initGeraete();
-
-</script>
 <style>
-  body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    background: #f7f9fc;
-    color: #333;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 1rem;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  button {
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-    background: #007bff;
-    border: none;
-    color: white;
-    border-radius: 4px;
-    font-size: 1rem;
-  }
-  button:hover {
-    background: #0056b3;
-  }
-  input, select {
-    font-size: 1rem;
-    padding: 0.3rem;
-    margin-bottom: 1rem;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 0.3rem;
-  }
-  #loginContainer {
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  #logoutBtn {
-    margin-bottom: 1rem;
-    display: none;
-  }
-  .tabs {
-    margin-top: 1rem;
-  }
-  .tab-header {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-    gap: 1rem;
-  }
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 1rem; background: #f0f0f0; }
+  h1 { text-align: center; }
+  .tabs { margin-top: 1rem; }
+  .tab-header { display: flex; justify-content: center; gap: 1rem; }
   .tab-header button {
-    background: #e1e1e1;
-    color: #333;
-    border-radius: 20px;
-    padding: 0.5rem 1.2rem;
-    font-weight: bold;
+    padding: 0.5rem 1rem;
     border: none;
-    transition: background 0.3s;
-  }
-  .tab-header button:hover {
-    background: #c4c4c4;
+    background: #ccc;
+    cursor: pointer;
+    border-radius: 20px;
+    font-weight: bold;
   }
   .tab-header button.active {
     background: #007bff;
     color: white;
   }
-  .tab-content {
-    display: none;
-  }
-  .tab-content.active {
-    display: block;
-  }
-  #tabelle {
-    width: 100%;
-    border-collapse: collapse;
+  .tab-content { display: none; margin-top: 1rem; background: white; padding: 1rem; border-radius: 8px; }
+  .tab-content.active { display: block; }
+  label { font-weight: bold; display: block; margin-top: 0.5rem; }
+  input, select { width: 100%; padding: 0.3rem; margin-top: 0.2rem; font-size: 1rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: center; }
+  th { background: #007bff; color: white; }
+  span.arrow-up { color: green; font-weight: bold; }
+  span.arrow-down { color: red; font-weight: bold; }
+  button.save-btn {
     margin-top: 1rem;
+    background: #007bff; color: white; border: none; padding: 0.6rem 1.2rem; font-size: 1rem; border-radius: 4px;
+    cursor: pointer;
   }
-  #tabelle th, #tabelle td {
-    border: 1px solid #ddd;
-    padding: 0.5rem;
-    text-align: center;
-  }
-  #tabelle th {
-    background-color: #007bff;
-    color: white;
-  }
-  canvas {
-    max-width: 100%;
-    margin-top: 1rem;
-  }
+  button.save-btn:hover { background: #0056b3; }
 </style>
 </head>
 <body>
-  <h1>Trainings App</h1>
 
-  <div id="loginContainer">
-    <input id="emailInput" type="email" placeholder="E-Mail" />
-    <input id="passInput" type="password" placeholder="Passwort" />
-    <button id="loginBtn">Anmelden</button>
+<h1>Trainings App Testversion</h1>
+
+<div class="tabs">
+  <div class="tab-header">
+    <button id="tabStatsBtn" class="active">📊 Statistiken</button>
+    <button id="tabFormBtn">📋 Training</button>
   </div>
-  <button id="logoutBtn">Abmelden</button>
 
-  <div class="tabs">
-    <div class="tab-header">
-      <button onclick="switchTab('statsTab')" id="tabStatsBtn" class="active">📊 Statistiken</button>
-      <button onclick="switchTab('formTab')" id="tabFormBtn">📋 Training</button>
-    </div>
-
-    <div id="statsTab" class="tab-content active">
-      <canvas id="geraetChart" height="200"></canvas>
-      <canvas id="wochenChart" height="200"></canvas>
-    </div>
-
-    <div id="formTab" class="tab-content">
-      <label for="geraetSelect">Gerät:</label>
-      <select id="geraetSelect"></select>
-
-      <label for="wdh">Wiederholungen:</label>
-      <input type="number" id="wdh" min="1" />
-
-      <label for="gewicht">Gewicht (kg):</label>
-      <input type="number" id="gewicht" min="0" step="0.5" />
-
-      <table id="tabelle" style="display:none;">
-        <thead>
-          <tr>
-            <th>Datum</th>
-            <th>Gerät</th>
-            <th>Wdh</th>
-            <th>Gewicht</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <div id="statsTab" class="tab-content active">
+    <canvas id="geraetChart" height="200"></canvas>
+    <canvas id="wochenChart" height="200" style="margin-top: 2rem;"></canvas>
   </div>
+
+  <div id="formTab" class="tab-content">
+    <label for="geraetSelect">Gerät:</label>
+    <select id="geraetSelect">
+      <option value="">-- Gerät wählen --</option>
+      <option>Bankdrücken</option>
+      <option>Kniebeugen</option>
+      <option>Klimmzüge</option>
+      <option>Deadlift</option>
+      <option>Schulterdrücken</option>
+    </select>
+
+    <label for="wdh">Wiederholungen:</label>
+    <input type="number" id="wdh" min="1" />
+
+    <label for="gewicht">Gewicht (kg):</label>
+    <input type="number" id="gewicht" min="0" step="0.5" />
+
+    <button class="save-btn" id="saveBtn">Eintrag speichern</button>
+
+    <table id="tabelle" style="display:none;">
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Gerät</th>
+          <th>Wdh</th>
+          <th>Gewicht</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
 
 <script>
-  // Tab Button aktiv/deaktiv toggeln
+  // Tab Umschaltung
   const tabStatsBtn = document.getElementById('tabStatsBtn');
   const tabFormBtn = document.getElementById('tabFormBtn');
+  const statsTab = document.getElementById('statsTab');
+  const formTab = document.getElementById('formTab');
 
-  function updateTabButtons(activeId) {
-    if(activeId === 'statsTab') {
-      tabStatsBtn.classList.add('active');
-      tabFormBtn.classList.remove('active');
-    } else {
-      tabFormBtn.classList.add('active');
-      tabStatsBtn.classList.remove('active');
+  tabStatsBtn.addEventListener('click', () => {
+    tabStatsBtn.classList.add('active');
+    tabFormBtn.classList.remove('active');
+    statsTab.classList.add('active');
+    formTab.classList.remove('active');
+    renderCharts();
+  });
+  tabFormBtn.addEventListener('click', () => {
+    tabFormBtn.classList.add('active');
+    tabStatsBtn.classList.remove('active');
+    formTab.classList.add('active');
+    statsTab.classList.remove('active');
+  });
+
+  // Elemente
+  const geraetSelect = document.getElementById('geraetSelect');
+  const wdhInput = document.getElementById('wdh');
+  const gewichtInput = document.getElementById('gewicht');
+  const saveBtn = document.getElementById('saveBtn');
+  const tabelle = document.getElementById('tabelle');
+  const tbody = tabelle.querySelector('tbody');
+
+  // Daten speichern in localStorage
+  const STORAGE_KEY = 'trainingsAppEintraege';
+
+  let eintraege = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+  function saveEntries() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(eintraege));
+  }
+
+  // Tabelle rendern mit Pfeilen
+  function renderTable() {
+    tbody.innerHTML = '';
+
+    if(eintraege.length === 0) {
+      tabelle.style.display = 'none';
+      return;
+    }
+    tabelle.style.display = 'table';
+
+    // letzte Gewichte pro Gerät merken
+    const lastGewicht = {};
+
+    // Sortiere Einträge nach Datum absteigend
+    eintraege.sort((a,b) => new Date(b.datum) - new Date(a.datum));
+
+    for(const e of eintraege) {
+      let pfeil = '';
+      const prevGewicht = lastGewicht[e.geraet];
+
+      if(prevGewicht !== undefined) {
+        if(e.gewicht > prevGewicht) pfeil = '<span class="arrow-up">&#9650;</span>';
+        else if(e.gewicht < prevGewicht) pfeil = '<span class="arrow-down">&#9660;</span>';
+      }
+
+      lastGewicht[e.geraet] = e.gewicht;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(e.datum).toLocaleString()}</td>
+        <td>${e.geraet}</td>
+        <td>${e.wdh}</td>
+        <td>${e.gewicht} kg ${pfeil}</td>
+      `;
+      tbody.appendChild(tr);
     }
   }
-  // Override global switchTab, damit auch Buttons aktualisiert werden
-  const oldSwitchTab = window.switchTab;
-  window.switchTab = function(tabId) {
-    updateTabButtons(tabId);
-    oldSwitchTab(tabId);
+
+  // Chart.js Charts
+  let geraetChart, wochenChart;
+
+  function renderCharts() {
+    if(eintraege.length === 0) {
+      if(geraetChart) geraetChart.destroy();
+      if(wochenChart) wochenChart.destroy();
+      return;
+    }
+
+    // Daten pro Gerät sammeln (Datum - Gewicht)
+    const dataPerGeraet = {};
+    // Trainings pro Woche (Jahr-Woche)
+    const trainingsPerWeek = {};
+
+    for(const e of eintraege) {
+      if(!dataPerGeraet[e.geraet]) dataPerGeraet[e.geraet] = [];
+      dataPerGeraet[e.geraet].push({ x: new Date(e.datum), y: e.gewicht });
+
+      const d = new Date(e.datum);
+      const year = d.getFullYear();
+      const week = getWeekNumber(d);
+      const key = `${year}-W${week}`;
+      trainingsPerWeek[key] = (trainingsPerWeek[key] || 0) + 1;
+    }
+
+    for(const g in dataPerGeraet) {
+      dataPerGeraet[g].sort((a,b) => a.x - b.x);
+    }
+
+    // Geräte Chart
+    const ctxG = document.getElementById('geraetChart').getContext('2d');
+    if(geraetChart) geraetChart.destroy();
+    geraetChart = new Chart(ctxG, {
+      type: 'line',
+      data: {
+        datasets: Object.keys(dataPerGeraet).map(geraet => ({
+          label: geraet,
+          data: dataPerGeraet[geraet].map(p => ({ x: p.x.toLocaleDateString(), y: p.y })),
+          borderColor: randomColor(geraet),
+          fill: false,
+          tension: 0.2,
+          parsing: false
+        }))
+      },
+      options: {
+        scales: {
+          x: { type: 'category', title: { display: true, text: 'Datum' } },
+          y: { beginAtZero: true, title: { display: true, text: 'Gewicht (kg)' } }
+        }
+      }
+    });
+
+    // Trainings pro Woche Chart
+    const ctxW = document.getElementById('wochenChart').getContext('2d');
+    if(wochenChart) wochenChart.destroy();
+    const sortedKeys = Object.keys(trainingsPerWeek).sort();
+    wochenChart = new Chart(ctxW, {
+      type: 'bar',
+      data: {
+        labels: sortedKeys,
+        datasets: [{
+          label: 'Trainings pro Woche',
+          data: sortedKeys.map(k => trainingsPerWeek[k]),
+          backgroundColor: '#007bff'
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Anzahl' } },
+          x: { title: { display: true, text: 'Kalenderwoche' } }
+        }
+      }
+    });
   }
+
+  // Hilfsfunktion Kalenderwoche ISO 8601
+  function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+  }
+
+  // Farbe aus String für Chart
+  function randomColor(str) {
+    let hash = 0;
+    for(let i=0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+    return "#" + "00000".substring(0, 6 - c.length) + c;
+  }
+
+  // Speichern Button
+  saveBtn.addEventListener('click', () => {
+    const geraet = geraetSelect.value;
+    const wdh = Number(wdhInput.value);
+    const gewicht = Number(gewichtInput.value);
+
+    if(!geraet) { alert('Bitte Gerät wählen'); return; }
+    if(!wdh || wdh < 1) { alert('Bitte gültige Wiederholungen eingeben'); return; }
+    if(isNaN(gewicht) || gewicht < 0) { alert('Bitte gültiges Gewicht eingeben'); return; }
+
+    eintraege.push({
+      datum: new Date().toISOString(),
+      geraet,
+      wdh,
+      gewicht
+    });
+
+    saveEntries();
+    renderTable();
+
+    // Eingabefelder leeren
+    geraetSelect.value = "";
+    wdhInput.value = "";
+    gewichtInput.value = "";
+
+    alert("Eintrag gespeichert!");
+  });
+
+  // Initial render
+  renderTable();
+  renderCharts();
+
 </script>
 
 </body>
 </html>
-
-
