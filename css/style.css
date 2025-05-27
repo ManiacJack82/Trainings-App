@@ -36,4 +36,23 @@ registerBtn.addEventListener("click", async () => {
   } catch (error) {
     message.textContent = "Registrierung fehlgeschlagen: " + error.message;
   }
+  /* Logout-Button modern stylen */
+.logout-button {
+  background-color: #e63946; /* rot-grau Kombination */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.logout-button:hover {
+  background-color: #d62828;
+}
+
 });
