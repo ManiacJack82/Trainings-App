@@ -9,10 +9,9 @@ if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {
     try {
       await signOut(auth);
-      // Nach dem Logout zur Login-Seite weiterleiten
-      window.location.href = "login.html";
+      window.location.href = "login.html"; // zurück zur Anmeldung
     } catch (error) {
-      console.error("Fehler beim Logout:", error);
+      console.error("Logout fehlgeschlagen:", error);
     }
   });
 }
