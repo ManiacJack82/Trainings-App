@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
     const firebaseConfig = {
@@ -25,146 +25,111 @@
     const auth = getAuth();
     const db = getDatabase(app);
 
-    const email = prompt("E-Mail eingeben:");
-    const pass = prompt("Passwort eingeben:");
-    signInWithEmailAndPassword(auth, email, pass)
-      .then(() => console.log("Angemeldet"))
-      .catch(err => alert("Login-Fehler: " + err.message));
-
+    let currentUser = null;
     const eintraege = [];
     const uebungen = [];
+
+    // DOM Elements
+    const emailInput = document.getElementById('emailInput');
+    const passInput = document.getElementById('passInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
 
     const geraetSelect = document.getElementById('geraetSelect');
     const wdhInput = document.getElementById('wdh');
     const gewichtInput = document.getElementById('gewicht');
     const tbody = document.querySelector('#tabelle tbody');
     const tabelle = document.getElementById('tabelle');
-    const trainingForm = document.getElementById('trainingForm');
+
     let geraetChart, wochenChart;
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      document.getElementById(tabId).classList.add('active');
-      if (tabId === 'statsTab') {
-        renderCharts();
-      }
-    }
-
-    document.getElementById('hinzufuegenUebung').onclick = () => {
-      const name = document.getElementById('neueUebung').value.trim();
-      if (name && !uebungen.includes(name)) {
-        uebungen.push(name);
-        updateUebungen();
-        document.getElementById('neueUebung').value = '';
-      }
+    // Login
+    loginBtn.onclick = () => {
+      const email = emailInput.value.trim();
+      const pass = passInput.value.trim();
+      signInWithEmailAndPassword(auth, email, pass)
+        .then(() => console.log("Angemeldet"))
+        .catch(err => alert("Login-Fehler: " + err.message));
     };
 
-    function updateUebungen() {
-      geraetSelect.innerHTML = '';
-      uebungen.forEach(uebung => {
-        const opt = document.createElement('option');
-        opt.textContent = uebung;
-        opt.value = uebung;
-        geraetSelect.appendChild(opt);
-      });
-      geraetSelect.selectedIndex = -1;
-      updateUebungenList();
-    }
-
-    function updateUebungenList() {
-      const list = document.getElementById('uebungenList');
-      list.innerHTML = '';
-      uebungen.forEach((uebung, index) => {
-        const li = document.createElement('li');
-        li.textContent = uebung;
-        const btn = document.createElement('button');
-        btn.textContent = 'Löschen';
-        btn.onclick = () => {
-          uebungen.splice(index, 1);
-          updateUebungen();
-        };
-        li.appendChild(btn);
-        list.appendChild(li);
-      });
-    }
-
-    document.getElementById('toggleUebungen').onclick = () => {
-      document.getElementById('uebungenContainer').classList.toggle('collapsed');
+    // Logout
+    logoutBtn.onclick = () => {
+      signOut(auth);
     };
 
-    geraetSelect.onchange = () => {
-      const eintraegeZuUebung = eintraege.filter(e => e.geraet === geraetSelect.value);
-      if (eintraegeZuUebung.length) {
-        const letzter = eintraegeZuUebung[0];
-        wdhInput.value = letzter.wdh;
-        gewichtInput.value = letzter.gewicht;
+    // User State Listener
+    onAuthStateChanged(auth, user => {
+      currentUser = user;
+      if (user) {
+        // Hide login, show logout
+        document.getElementById('loginContainer').style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        loadEntries();
       } else {
-        wdhInput.value = '';
-        gewichtInput.value = '';
+        // Show login, hide logout
+        document.getElementById('loginContainer').style.display = 'block';
+        logoutBtn.style.display = 'none';
+        eintraege.length = 0;
+        tbody.innerHTML = '';
+        tabelle.hidden = true;
       }
-    };
+    });
 
-    trainingForm.onsubmit = e => {
-      e.preventDefault();
-      const now = new Date();
-      const datum = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    function loadEntries() {
+      const eintraegeRef = ref(db, `users/${currentUser.uid}/eintraege`);
+      onValue(eintraegeRef, snapshot => {
+        eintraege.length = 0;
+        tbody.innerHTML = '';
+        snapshot.forEach(child => {
+          const e = child.val();
+          eintraege.unshift(e);
+          addEntryToTable(e);
+        });
+        tabelle.hidden = eintraege.length === 0;
+        if (document.getElementById('statsTab').classList.contains('active')) {
+          renderCharts();
+        }
+      });
+    }
+
+    function addEntryToTable(e) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${e.datum}</td>
+        <td>${e.geraet}</td>
+        <td>${e.wdh}</td>
+        <td>${e.gewicht} kg</td>
+        <td><button onclick="this.closest('tr').remove()">🗑️</button></td>
+      `;
+      tbody.appendChild(row);
+    }
+
+    // Automatische Speicherung bei Änderung
+    function saveCurrentEntry() {
+      if (!currentUser) return;
+
       const geraet = geraetSelect.value;
       const wdh = Number(wdhInput.value);
       const gewicht = Number(gewichtInput.value);
 
-      const eintrag = { datum, geraet, wdh, gewicht };
-      eintraege.unshift(eintrag);
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${datum}</td>
-        <td>${geraet}</td>
-        <td>${wdh}</td>
-        <td>${gewicht} kg</td>
-        <td><button onclick="this.closest('tr').remove()">🗑️</button></td>
-      `;
-      tbody.prepend(row);
-
-      tabelle.hidden = false;
-      trainingForm.reset();
-      geraetSelect.selectedIndex = -1;
-
-      const userId = auth.currentUser.uid;
-      const eintragRef = push(ref(db, `users/${userId}/eintraege`));
-      set(eintragRef, eintrag);
-    };
-
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        const eintraegeRef = ref(db, `users/${user.uid}/eintraege`);
-        onValue(eintraegeRef, snapshot => {
-          eintraege.length = 0;
-          tbody.innerHTML = '';
-          snapshot.forEach(child => {
-            const e = child.val();
-            eintraege.unshift(e);
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${e.datum}</td>
-              <td>${e.geraet}</td>
-              <td>${e.wdh}</td>
-              <td>${e.gewicht} kg</td>
-              <td><button onclick="this.closest('tr').remove()">🗑️</button></td>
-            `;
-            tbody.appendChild(row);
-          });
-          tabelle.hidden = eintraege.length === 0;
-
-          // Charts aktualisieren, falls Statistik-Tab aktiv
-          if (document.getElementById('statsTab').classList.contains('active')) {
-            renderCharts();
-          }
-        });
+      if (!geraet || !wdh || wdh <= 0 || isNaN(gewicht) || gewicht < 0) {
+        return; // Ungültige Eingaben ignorieren
       }
-    });
 
+      const now = new Date();
+      const datum = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      const eintrag = { datum, geraet, wdh, gewicht };
+
+      // Firebase speichern
+      const eintragRef = push(ref(db, `users/${currentUser.uid}/eintraege`));
+      set(eintragRef, eintrag);
+    }
+
+    geraetSelect.addEventListener('change', saveCurrentEntry);
+    wdhInput.addEventListener('input', saveCurrentEntry);
+    gewichtInput.addEventListener('input', saveCurrentEntry);
+
+    // Charts rendern (bleibt unverändert)
     function renderCharts() {
       const geraeteDaten = {};
       const wochen = {};
@@ -216,13 +181,16 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const activeTab = document.querySelector('.tab-content.active');
-      if (activeTab && activeTab.id === 'statsTab') {
-        renderCharts();
-      }
-    });
+    // Tab wechseln (unverändert)
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      if (tabId === 'statsTab') renderCharts();
+    }
+    window.switchTab = switchTab; // global für Buttons
+
   </script>
+
   <style>
     body {
       font-family: sans-serif;
@@ -234,36 +202,41 @@
     }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+    #logoutBtn { display: none; }
+    #loginContainer > * {
+      display: block;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>Trainings App</h1>
+
+  <div id="loginContainer">
+    <input id="emailInput" type="email" placeholder="E-Mail" />
+    <input id="passInput" type="password" placeholder="Passwort" />
+    <button id="loginBtn">Anmelden</button>
+  </div>
+  <button id="logoutBtn">Abmelden</button>
+
   <div class="tabs">
     <div class="tab-header">
       <button onclick="switchTab('statsTab')">📊 Statistiken</button>
       <button onclick="switchTab('formTab')">📋 Training</button>
     </div>
+
     <div id="statsTab" class="tab-content">
       <canvas id="geraetChart"></canvas>
       <canvas id="wochenChart"></canvas>
     </div>
+
     <div id="formTab" class="tab-content active">
-      <div class="custom-section" id="uebungenContainer">
-        <h3>Übung hinzufügen</h3>
-        <input id="neueUebung" placeholder="Name der Übung" />
-        <button id="hinzufuegenUebung">Hinzufügen</button>
-        <button id="toggleUebungen">Übungsliste ein-/ausklappen</button>
-        <ul id="uebungenList"></ul>
-      </div>
-      <form id="trainingForm">
-        <label>Gerät:</label>
-        <select id="geraetSelect"></select>
-        <label>Wiederholungen:</label>
-        <input type="number" id="wdh" min="1" />
-        <label>Gewicht (kg):</label>
-        <input type="number" id="gewicht" min="0" step="0.5" />
-        <button type="submit">Eintragen</button>
-      </form>
+      <label>Gerät:</label>
+      <select id="geraetSelect"></select>
+      <label>Wiederholungen:</label>
+      <input type="number" id="wdh" min="1" />
+      <label>Gewicht (kg):</label>
+      <input type="number" id="gewicht" min="0" step="0.5" />
       <table id="tabelle" hidden>
         <thead><tr><th>Datum</th><th>Gerät</th><th>Wdh</th><th>Gewicht</th><th>Aktion</th></tr></thead>
         <tbody></tbody>
@@ -272,4 +245,5 @@
   </div>
 </body>
 </html>
+
 
