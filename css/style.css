@@ -145,13 +145,17 @@ body.app-page {
 /* =============== Footer „Created by Daniel“ =============== */
 .app-footer {
   position: fixed;
-  bottom: 10px;
+  bottom: 0;               /* ganz unten am Bildschirm */
   left: 50%;
   transform: translateX(-50%);
-  font-size: 12px;
-  color: #ccc; /* hellgrau */
+  font-size: 10px;         /* kleiner */
+  color: #999999;          /* hellgrau */
+  background: transparent; /* kein Hintergrund */
+  padding: 4px 8px;        /* etwas Abstand */
   font-family: Arial, sans-serif;
   user-select: none;
   pointer-events: none;
   z-index: 1000;
+  width: 100%;
+  text-align: center;
 }
