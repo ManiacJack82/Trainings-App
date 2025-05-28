@@ -99,12 +99,19 @@ body.app-page {
   max-width: 800px;
 }
 
+/* Header jetzt vertikal mit zentriertem Inhalt */
 .app-header {
   width: 100%;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;  /* Vertikale Anordnung */
+  align-items: center;     /* Zentriert horizontal */
+  gap: 1rem;               /* Abstand zwischen Überschrift und Button */
   margin-bottom: 2rem;
+  text-align: center;      /* Überschrift zentrieren */
+}
+
+.app-header h1 {
+  margin: 0;
 }
 
 .logout-button {
@@ -114,6 +121,7 @@ body.app-page {
   padding: 0.6rem 1.2rem;
   border-radius: 5px;
   cursor: pointer;
+  width: max-content; /* Nur so breit wie nötig */
 }
 
 .logout-button:hover {
