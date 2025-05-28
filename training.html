@@ -1,341 +1,43 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Trainings App</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  /* Grundstyles ähnlich deiner aktuellen app */
-  body.app-page {
-    font-family: Arial, sans-serif;
-    background-color: #1a1a1a;
-    color: #fff;
-    margin: 0;
-    padding: 2rem;
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
-  }
-  .app-wrapper {
-    width: 100%;
-    max-width: 700px;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  .tabs {
-    background: #2c2c2c;
-    border-radius: 12px;
-    padding: 1rem;
-    box-shadow: 0 0 20px rgba(0,0,0,0.6);
-  }
-  .tab-header {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 1rem;
-    justify-content: center;
-  }
-  .tab-header button {
-    background: #e53935;
-    border: none;
-    color: white;
-    padding: 0.6rem 1.2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
-  .tab-header button:hover {
-    background-color: #b71c1c;
-  }
-  .tab-content {
-    display: none;
-  }
-  .tab-content.active {
-    display: block;
-  }
-  /* Formular, Listen & Tabellen */
-  input, select, button, table {
-    font-family: inherit;
-  }
-  input, select {
-    width: 100%;
-    padding: 0.6rem;
-    margin-bottom: 1rem;
-    border-radius: 6px;
-    border: none;
-    background-color: #444;
-    color: #fff;
-  }
-  button {
-    background-color: #e53935;
-    border: none;
-    color: white;
-    padding: 0.8rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #b71c1c;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-    color: #eee;
-  }
-  th, td {
-    padding: 0.6rem 0.8rem;
-    border-bottom: 1px solid #444;
-    text-align: left;
-  }
-  #uebungenList {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 0;
-  }
-  #uebungenList li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #444;
-    margin-bottom: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-  }
-  #uebungenList button {
-    background: #b32c00;
-    padding: 0.3rem 0.8rem;
-    font-weight: 700;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    box-shadow: 0 3px 6px #7f1a00;
-  }
-  #uebungenContainer.collapsed #uebungenList {
-    display: none;
-  }
-  #toggleUebungen {
-    background: #555;
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
-    padding: 0.4rem 0.8rem;
-  }
-  canvas {
-    max-width: 100%;
-    margin-top: 1rem;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Training</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="app-page">
   <div class="app-wrapper">
-    <h1>Trainings App</h1>
 
-    <div class="tabs">
-      <div class="tab-header">
-        <button onclick="switchTab('statsTab')">📊 Statistiken</button>
-        <button onclick="switchTab('formTab')">📋 Training</button>
+    <main class="app-main">
+
+      <!-- Training Button im oberen Drittel -->
+      <div class="training-section">
+        <button onclick="location.href='training.html'" class="app-button large-button">🏋️ Training starten</button>
+        <button onclick="history.back()" class="app-button secondary-button">⬅️ Zurück</button>
       </div>
 
-      <div id="statsTab" class="tab-content">
-        <canvas id="geraetChart"></canvas>
-        <canvas id="wochenChart"></canvas>
-      </div>
-
-      <div id="formTab" class="tab-content active">
-        <div id="uebungenContainer">
-          <h3>Übung hinzufügen</h3>
-          <input id="neueUebung" placeholder="Name der Übung" />
-          <button id="hinzufuegenUebung">Hinzufügen</button>
-          <button id="toggleUebungen">Übungsliste ein-/ausklappen</button>
-          <ul id="uebungenList"></ul>
-        </div>
-
-        <form id="trainingForm">
-          <label>Gerät:</label>
-          <select id="geraetSelect"></select>
-
-          <label>Wiederholungen:</label>
-          <input type="number" id="wdh" min="1" />
-
-          <label>Gewicht (kg):</label>
-          <input type="number" id="gewicht" min="0" step="0.5" />
-
-          <button type="submit">Eintragen</button>
+      <!-- Eingabemaske für neue Übungen -->
+      <section class="exercise-input">
+        <h2>Neue Übung hinzufügen</h2>
+        <form id="exerciseForm">
+          <input type="text" id="exerciseName" placeholder="Übungsname" required />
+          <button type="submit" class="app-button">Hinzufügen</button>
         </form>
+      </section>
 
-        <table id="tabelle" hidden>
-          <thead>
-            <tr><th>Datum</th><th>Gerät</th><th>Wdh</th><th>Gewicht</th><th>Aktion</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+      <!-- Liste der Übungen -->
+      <section class="exercise-list">
+        <h2>Übungen</h2>
+        <ul id="exerciseItems">
+          <!-- Beispiel-Eintrag -->
+          <!--
+          <li>
+            <span>Liegestütze</span>
+            <button class="delete-btn" title="Löschen">×</button>
+          </li>
+          -->
+        </ul>
+      </section>
 
-  <script>
-    const geraetSelect = document.getElementById('geraetSelect');
-    const wdhInput = document.getElementById('wdh');
-    const gewichtInput = document.getElementById('gewicht');
-    const tbody = document.querySelector('#tabelle tbody');
-    const tabelle = document.getElementById('tabelle');
-    const trainingForm = document.getElementById('trainingForm');
-    const uebungenList = document.getElementById('uebungenList');
-    const uebungenContainer = document.getElementById('uebungenContainer');
-
-    let geraetChart, wochenChart;
-    const eintraege = [];
-    const uebungen = [];
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      document.getElementById(tabId).classList.add('active');
-      if (tabId === 'statsTab') {
-        renderCharts();
-      }
-    }
-
-    document.getElementById('hinzufuegenUebung').onclick = () => {
-      const name = document.getElementById('neueUebung').value.trim();
-      if (name && !uebungen.includes(name)) {
-        uebungen.push(name);
-        updateUebungen();
-        document.getElementById('neueUebung').value = '';
-      }
-    };
-
-    function updateUebungen() {
-      geraetSelect.innerHTML = '';
-      uebungen.forEach(uebung => {
-        const opt = document.createElement('option');
-        opt.textContent = uebung;
-        opt.value = uebung;
-        geraetSelect.appendChild(opt);
-      });
-      geraetSelect.selectedIndex = -1;
-      updateUebungenList();
-    }
-
-    function updateUebungenList() {
-      uebungenList.innerHTML = '';
-      uebungen.forEach((uebung, index) => {
-        const li = document.createElement('li');
-        li.textContent = uebung;
-        const btn = document.createElement('button');
-        btn.textContent = 'Löschen';
-        btn.onclick = () => {
-          uebungen.splice(index, 1);
-          updateUebungen();
-        };
-        li.appendChild(btn);
-        uebungenList.appendChild(li);
-      });
-    }
-
-    document.getElementById('toggleUebungen').onclick = () => {
-      uebungenContainer.classList.toggle('collapsed');
-    };
-
-    geraetSelect.onchange = () => {
-      const eintraegeZuUebung = eintraege.filter(e => e.geraet === geraetSelect.value);
-      if (eintraegeZuUebung.length) {
-        const letzter = eintraegeZuUebung[0];
-        wdhInput.value = letzter.wdh;
-        gewichtInput.value = letzter.gewicht;
-      } else {
-        wdhInput.value = '';
-        gewichtInput.value = '';
-      }
-    };
-
-    trainingForm.onsubmit = e => {
-      e.preventDefault();
-      const now = new Date();
-      const datum = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-      const geraet = geraetSelect.value;
-      const wdh = Number(wdhInput.value);
-      const gewicht = Number(gewichtInput.value);
-      const vorherige = eintraege.find(e => e.geraet === geraet);
-
-      let diffWdh = '', diffGewicht = '';
-      if (vorherige) {
-        diffWdh = wdh > vorherige.wdh ? '⬆' : wdh < vorherige.wdh ? '⬇' : '=';
-        diffGewicht = gewicht > vorherige.gewicht ? '⬆' : gewicht < vorherige.gewicht ? '⬇' : '=';
-      }
-
-      eintraege.unshift({ datum, geraet, wdh, gewicht });
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${datum}</td>
-        <td>${geraet}</td>
-        <td>${wdh} <span class="diff-arrow">${diffWdh}</span></td>
-        <td>${gewicht} kg <span class="diff-arrow">${diffGewicht}</span></td>
-        <td><button onclick="this.closest('tr').remove()">🗑️</button></td>
-      `;
-      tbody.prepend(row);
-
-      tabelle.hidden = false;
-      trainingForm.reset();
-      geraetSelect.selectedIndex = -1;
-    };
-
-    function renderCharts() {
-      const geraeteDaten = {};
-      const wochen = {};
-
-      eintraege.forEach(e => {
-        const d = new Date(e.datum.split(' ')[0].split('.').reverse().join('-'));
-        const kw = `${d.getFullYear()}-W${Math.ceil((d.getDate() + 6 - d.getDay()) / 7)}`;
-        wochen[kw] = (wochen[kw] || 0) + 1;
-        geraeteDaten[e.geraet] = geraeteDaten[e.geraet] || [];
-        geraeteDaten[e.geraet].push({ x: e.datum, y: e.gewicht });
-      });
-
-      const geraetCtx = document.getElementById('geraetChart').getContext('2d');
-      if (geraetChart) geraetChart.destroy();
-      geraetChart = new Chart(geraetCtx, {
-        type: 'line',
-        data: {
-          datasets: Object.keys(geraeteDaten).map(name => ({
-            label: name,
-            data: geraeteDaten[name],
-            fill: false,
-            borderColor: '#' + Math.floor(Math.random()*16777215).toString(16)
-          }))
-        },
-        options: {
-          responsive: true,
-          plugins: { title: { display: true, text: 'Gewichtsverlauf pro Gerät' } },
-          scales: { x: { type: 'category', title: { display: true, text: 'Datum' } }, y: { title: { display: true, text: 'kg' } } }
-        }
-      });
-
-      const wochenCtx = document.getElementById('wochenChart').getContext('2d');
-      if (wochenChart) wochenChart.destroy();
-      wochenChart = new Chart(wochenCtx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(wochen),
-          datasets: [{
-            label: 'Trainings/Woche',
-            data: Object.values(wochen),
-            backgroundColor: '#e53935'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { title: { display: true, text: 'Trainingshäufigkeit pro Woche' } },
-          scales: { y: { beginAtZero: true, title: { display: true, text: 'Anzahl' } } }
-        }
-      });
-    }
-  </script>
-</body>
-</html>
+    </main>
