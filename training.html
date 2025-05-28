@@ -12,30 +12,31 @@
       <button onclick="location.href='app.html'" class="logout-button">Zurück</button>
     </header>
 
-    <main class="app-main">
-      <section class="exercise-section">
-        <button id="toggle-list">Übungen verbergen</button>
+<main class="app-main">
+  <section class="exercise-section">
+    <button id="toggle-list">Übungen verbergen</button>
 
-        <div id="exercise-list" style="display: block; margin-top: 10px;"></div>
+    <div id="exercise-list" style="display: block; margin-top: 10px;"></div>
 
-        <div class="exercise-form" style="margin-top: 20px;">
-          <select id="exercise-select">
-            <option value="">Übung auswählen</option>
-            <option value="Bankdrücken">Bankdrücken</option>
-            <option value="Kniebeugen">Kniebeugen</option>
-            <option value="Kreuzheben">Kreuzheben</option>
-            <option value="Schulterdrücken">Schulterdrücken</option>
-          </select>
+    <div class="exercise-form" style="margin-top: 20px;">
+      <select id="exercise-select">
+        <option value="">Übung auswählen</option>
+        <option value="Bankdrücken">Bankdrücken</option>
+        <option value="Kniebeugen">Kniebeugen</option>
+        <option value="Kreuzheben">Kreuzheben</option>
+        <option value="Schulterdrücken">Schulterdrücken</option>
+      </select>
 
-          <input type="number" id="weight-input" placeholder="Gewicht (kg)" />
-          <input type="number" id="reps-input" placeholder="Wiederholungen" />
+      <input type="number" id="weight-input" placeholder="Gewicht (kg)" />
+      <input type="number" id="reps-input" placeholder="Wiederholungen" />
 
-          <button id="add-exercise">Übung hinzufügen</button>
-        </div>
+      <button id="add-exercise">Übung hinzufügen</button>
+    </div>
 
-        <div id="last-values" style="margin-top: 10px; color: gray;"></div>
-      </section>
-    </main>
+    <div id="last-values" style="margin-top: 10px; color: gray;"></div>
+  </section>
+</main>
+
   </div>
 
   <script src="js/training.js"></script>
