@@ -166,3 +166,146 @@ body.app-page {
   z-index: 1000;
   width: 100%;
   text-align: center;
+
+  /* Layout für Training-Seite */
+.app-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  gap: 2rem;
+  padding: 1rem;
+  min-height: 80vh;
+  justify-content: flex-start;
+}
+
+/* Training Button & Zurück Button im oberen Drittel */
+.training-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+  padding-top: 2rem;
+}
+
+.large-button {
+  padding: 1.5rem 2rem;
+  font-size: 1.4rem;
+}
+
+.secondary-button {
+  background-color: #666;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.secondary-button:hover {
+  background-color: #888;
+}
+
+/* Eingabemaske */
+.exercise-input {
+  width: 100%;
+  background-color: #2c2c2c;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.exercise-input h2 {
+  margin: 0 0 1rem 0;
+  font-weight: normal;
+  color: #ddd;
+}
+
+.exercise-input form {
+  display: flex;
+  gap: 1rem;
+}
+
+.exercise-input input[type="text"] {
+  flex-grow: 1;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  background-color: #444;
+  color: #fff;
+}
+
+.exercise-input input[type="text"]::placeholder {
+  color: #bbb;
+}
+
+.exercise-input button {
+  background-color: #e53935;
+  color: #fff;
+  border: none;
+  padding: 0 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.exercise-input button:hover {
+  background-color: #b71c1c;
+}
+
+/* Übungsliste */
+.exercise-list {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.exercise-list h2 {
+  margin-bottom: 1rem;
+  font-weight: normal;
+  color: #ddd;
+}
+
+.exercise-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.exercise-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2c2c2c;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  color: #eee;
+}
+
+/* Löschen Button als rotes Quadrat mit abgerundeten Ecken und grauem X */
+.delete-btn {
+  background-color: #e53935;
+  border: none;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  color: #888888;
+  font-weight: bold;
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 0;
+}
+
+.delete-btn:hover {
+  background-color: #b71c1c;
+  color: #ccc;
+}
+
