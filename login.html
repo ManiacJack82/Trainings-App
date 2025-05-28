@@ -2,23 +2,20 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login | Trainings-App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Trainings App</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="login-page">
-  <div class="login-container">
-    <h1>Trainings-App</h1>
-    
-    <input type="email" id="email" placeholder="E-Mail" required />
-    <input type="password" id="password" placeholder="Passwort" required />
-    
-    <div class="button-group">
-      <button id="loginBtn" class="auth-button">Login</button>
-      <button id="registerBtn" class="auth-button secondary">Registrieren</button>
+  <div class="login-wrapper">
+    <div class="login-box">
+      <h1>Trainings App</h1>
+      <input type="email" id="email" placeholder="E-Mail-Adresse" />
+      <input type="password" id="password" placeholder="Passwort" />
+      <button id="loginBtn">Login</button>
+      <button id="registerBtn" class="register">Registrieren</button>
+      <p id="message"></p>
     </div>
-
-    <p id="message" class="message"></p>
   </div>
 
   <script type="module" src="js/auth.js"></script>
