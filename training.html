@@ -1,180 +1,154 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Trainings App</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  /* Grundstyles ähnlich deiner aktuellen app */
-  body.app-page {
-    font-family: Arial, sans-serif;
-    background-color: #1a1a1a;
-    color: #fff;
-    margin: 0;
-    padding: 2rem;
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
-  }
-  .app-wrapper {
-    width: 100%;
-    max-width: 700px;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  .tabs {
-    background: #2c2c2c;
-    border-radius: 12px;
-    padding: 1rem;
-    box-shadow: 0 0 20px rgba(0,0,0,0.6);
-  }
-  .tab-header {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 1rem;
-    justify-content: center;
-  }
-  .tab-header button {
-    background: #e53935;
-    border: none;
-    color: white;
-    padding: 0.6rem 1.2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
-  .tab-header button:hover {
-    background-color: #b71c1c;
-  }
-  .tab-content {
-    display: none;
-  }
-  .tab-content.active {
-    display: block;
-  }
-  /* Formular, Listen & Tabellen */
-  input, select, button, table {
-    font-family: inherit;
-  }
-  input, select {
-    width: 100%;
-    padding: 0.6rem;
-    margin-bottom: 1rem;
-    border-radius: 6px;
-    border: none;
-    background-color: #444;
-    color: #fff;
-  }
-  button {
-    background-color: #e53935;
-    border: none;
-    color: white;
-    padding: 0.8rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #b71c1c;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-    color: #eee;
-  }
-  th, td {
-    padding: 0.6rem 0.8rem;
-    border-bottom: 1px solid #444;
-    text-align: left;
-  }
-  #uebungenList {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 0;
-  }
-  #uebungenList li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #444;
-    margin-bottom: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-  }
-  #uebungenList button {
-    background: #b32c00;
-    padding: 0.3rem 0.8rem;
-    font-weight: 700;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    box-shadow: 0 3px 6px #7f1a00;
-  }
-  #uebungenContainer.collapsed #uebungenList {
-    display: none;
-  }
-  #toggleUebungen {
-    background: #555;
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
-    padding: 0.4rem 0.8rem;
-  }
-  canvas {
-    max-width: 100%;
-    margin-top: 1rem;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trainings App</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      padding: 10px;
+      max-width: 500px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    #backButton {
+      background-color: #e53935;
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      box-shadow: 0 3px 6px #7f1a1a;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 120px;
+    }
+    form, table, .custom-section {
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      margin-bottom: 20px;
+    }
+    label, select, input, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    input, select {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #00c896;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #fff;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ccc;
+    }
+    #uebungenList {
+      list-style: none;
+      padding-left: 0;
+    }
+    #uebungenList li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.15);
+      padding: 6px 10px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    #uebungenList li button {
+      background: #b32c00;
+      color: white;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 22px;
+      padding: 0;
+      cursor: pointer;
+      box-shadow: 0 3px 6px #7f1a00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #toggleUebungen {
+      background: #004f4f;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      width: 100%;
+      max-width: none;
+    }
+    #uebungenContainer.collapsed #uebungenList {
+      display: none;
+    }
+  </style>
 </head>
-<body class="app-page">
-  <div class="app-wrapper">
-    <h1>Trainings App</h1>
+<body>
+  <h1>Trainings App</h1>
 
-    <div class="tabs">
-      <div class="tab-header">
-        <button onclick="switchTab('statsTab')">📊 Statistiken</button>
-        <button onclick="switchTab('formTab')">📋 Training</button>
-      </div>
+  <button id="backButton">Zurück</button>
 
-      <div id="statsTab" class="tab-content">
-        <canvas id="geraetChart"></canvas>
-        <canvas id="wochenChart"></canvas>
-      </div>
-
-      <div id="formTab" class="tab-content active">
-        <div id="uebungenContainer">
-          <h3>Übung hinzufügen</h3>
-          <input id="neueUebung" placeholder="Name der Übung" />
-          <button id="hinzufuegenUebung">Hinzufügen</button>
-          <button id="toggleUebungen">Übungsliste ein-/ausklappen</button>
-          <ul id="uebungenList"></ul>
-        </div>
-
-        <form id="trainingForm">
-          <label>Gerät:</label>
-          <select id="geraetSelect"></select>
-
-          <label>Wiederholungen:</label>
-          <input type="number" id="wdh" min="1" />
-
-          <label>Gewicht (kg):</label>
-          <input type="number" id="gewicht" min="0" step="0.5" />
-
-          <button type="submit">Eintragen</button>
-        </form>
-
-        <table id="tabelle" hidden>
-          <thead>
-            <tr><th>Datum</th><th>Gerät</th><th>Wdh</th><th>Gewicht</th><th>Aktion</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+  <div id="formTab" class="tab-content active">
+    <div class="custom-section" id="uebungenContainer">
+      <h3>Übung hinzufügen</h3>
+      <input id="neueUebung" placeholder="Name der Übung" />
+      <button id="hinzufuegenUebung">Hinzufügen</button>
+      <button id="toggleUebungen">Übungsliste ein-/ausklappen</button>
+      <ul id="uebungenList"></ul>
     </div>
+
+    <form id="trainingForm">
+      <label>Gerät:</label>
+      <select id="geraetSelect"></select>
+
+      <label>Wiederholungen:</label>
+      <input type="number" id="wdh" min="1" />
+
+      <label>Gewicht (kg):</label>
+      <input type="number" id="gewicht" min="0" step="0.5" />
+
+      <button type="submit">Eintragen</button>
+    </form>
+
+    <table id="tabelle" hidden>
+      <thead>
+        <tr><th>Datum</th><th>Gerät</th><th>Wdh</th><th>Gewicht</th><th>Aktion</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script>
@@ -184,22 +158,14 @@
     const tbody = document.querySelector('#tabelle tbody');
     const tabelle = document.getElementById('tabelle');
     const trainingForm = document.getElementById('trainingForm');
-    const uebungenList = document.getElementById('uebungenList');
-    const uebungenContainer = document.getElementById('uebungenContainer');
 
-    let geraetChart, wochenChart;
-    const eintraege = [];
-    const uebungen = [];
+    const backButton = document.getElementById('backButton');
+    backButton.onclick = () => {
+      window.location.href = 'app.html';
+    };
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      document.getElementById(tabId).classList.add('active');
-      if (tabId === 'statsTab') {
-        renderCharts();
-      }
-    }
+    let eintraege = [];
+    let uebungen = [];
 
     document.getElementById('hinzufuegenUebung').onclick = () => {
       const name = document.getElementById('neueUebung').value.trim();
@@ -223,23 +189,25 @@
     }
 
     function updateUebungenList() {
-      uebungenList.innerHTML = '';
+      const list = document.getElementById('uebungenList');
+      list.innerHTML = '';
       uebungen.forEach((uebung, index) => {
         const li = document.createElement('li');
         li.textContent = uebung;
         const btn = document.createElement('button');
-        btn.textContent = 'Löschen';
+        btn.textContent = '×';
+        btn.title = 'Löschen';
         btn.onclick = () => {
           uebungen.splice(index, 1);
           updateUebungen();
         };
         li.appendChild(btn);
-        uebungenList.appendChild(li);
+        list.appendChild(li);
       });
     }
 
     document.getElementById('toggleUebungen').onclick = () => {
-      uebungenContainer.classList.toggle('collapsed');
+      document.getElementById('uebungenContainer').classList.toggle('collapsed');
     };
 
     geraetSelect.onchange = () => {
@@ -285,57 +253,6 @@
       trainingForm.reset();
       geraetSelect.selectedIndex = -1;
     };
-
-    function renderCharts() {
-      const geraeteDaten = {};
-      const wochen = {};
-
-      eintraege.forEach(e => {
-        const d = new Date(e.datum.split(' ')[0].split('.').reverse().join('-'));
-        const kw = `${d.getFullYear()}-W${Math.ceil((d.getDate() + 6 - d.getDay()) / 7)}`;
-        wochen[kw] = (wochen[kw] || 0) + 1;
-        geraeteDaten[e.geraet] = geraeteDaten[e.geraet] || [];
-        geraeteDaten[e.geraet].push({ x: e.datum, y: e.gewicht });
-      });
-
-      const geraetCtx = document.getElementById('geraetChart').getContext('2d');
-      if (geraetChart) geraetChart.destroy();
-      geraetChart = new Chart(geraetCtx, {
-        type: 'line',
-        data: {
-          datasets: Object.keys(geraeteDaten).map(name => ({
-            label: name,
-            data: geraeteDaten[name],
-            fill: false,
-            borderColor: '#' + Math.floor(Math.random()*16777215).toString(16)
-          }))
-        },
-        options: {
-          responsive: true,
-          plugins: { title: { display: true, text: 'Gewichtsverlauf pro Gerät' } },
-          scales: { x: { type: 'category', title: { display: true, text: 'Datum' } }, y: { title: { display: true, text: 'kg' } } }
-        }
-      });
-
-      const wochenCtx = document.getElementById('wochenChart').getContext('2d');
-      if (wochenChart) wochenChart.destroy();
-      wochenChart = new Chart(wochenCtx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(wochen),
-          datasets: [{
-            label: 'Trainings/Woche',
-            data: Object.values(wochen),
-            backgroundColor: '#e53935'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { title: { display: true, text: 'Trainingshäufigkeit pro Woche' } },
-          scales: { y: { beginAtZero: true, title: { display: true, text: 'Anzahl' } } }
-        }
-      });
-    }
   </script>
 </body>
 </html>
