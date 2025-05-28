@@ -2,43 +2,47 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Training starten</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Training</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="app-page">
   <div class="app-wrapper">
-    <header class="app-header">
-      <h1>Training</h1>
-      <button onclick="location.href='app.html'" class="logout-button">Zurück</button>
-    </header>
 
-<main class="app-main">
-  <section class="exercise-section">
-    <button id="toggle-list">Übungen verbergen</button>
+    <main class="app-main">
 
-    <div id="exercise-list" style="display: block; margin-top: 10px;"></div>
+      <!-- Training Button im oberen Drittel -->
+      <div class="training-section">
+        <button onclick="location.href='training.html'" class="app-button large-button">🏋️ Training starten</button>
+        <button onclick="history.back()" class="app-button secondary-button">⬅️ Zurück</button>
+      </div>
 
-    <div class="exercise-form" style="margin-top: 20px;">
-      <select id="exercise-select">
-        <option value="">Übung auswählen</option>
-        <option value="Bankdrücken">Bankdrücken</option>
-        <option value="Kniebeugen">Kniebeugen</option>
-        <option value="Kreuzheben">Kreuzheben</option>
-        <option value="Schulterdrücken">Schulterdrücken</option>
-      </select>
+      <!-- Eingabemaske für neue Übungen -->
+      <section class="exercise-input">
+        <h2>Neue Übung hinzufügen</h2>
+        <form id="exerciseForm">
+          <input type="text" id="exerciseName" placeholder="Übungsname" required />
+          <button type="submit" class="app-button">Hinzufügen</button>
+        </form>
+      </section>
 
-      <input type="number" id="weight-input" placeholder="Gewicht (kg)" />
-      <input type="number" id="reps-input" placeholder="Wiederholungen" />
+      <!-- Liste der Übungen -->
+      <section class="exercise-list">
+        <h2>Übungen</h2>
+        <ul id="exerciseItems">
+          <!-- Beispiel-Eintrag -->
+          <!--
+          <li>
+            <span>Liegestütze</span>
+            <button class="delete-btn" title="Löschen">×</button>
+          </li>
+          -->
+        </ul>
+      </section>
 
-      <button id="add-exercise">Übung hinzufügen</button>
-    </div>
-
-    <div id="last-values" style="margin-top: 10px; color: gray;"></div>
-  </section>
-</main>
+    </main>
 
   </div>
-
   <script src="js/training.js"></script>
 </body>
 </html>
