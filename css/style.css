@@ -141,3 +141,17 @@ body.app-page {
 .app-button:hover {
   background-color: #b71c1c;
 }
+
+/* =============== Footer „Created by Daniel“ =============== */
+.app-footer {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #ccc; /* hellgrau */
+  font-family: Arial, sans-serif;
+  user-select: none;
+  pointer-events: none;
+  z-index: 1000;
+}
