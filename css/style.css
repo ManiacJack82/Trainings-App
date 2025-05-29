@@ -104,6 +104,17 @@ body.app-page {
   padding: 1rem;
 }
 
+@media (max-width: 480px) {
+  .app-wrapper {
+    padding: 0.5rem;
+  }
+
+  .app-button {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+}
+
 /* Header */
 .app-header {
   width: 100%;
