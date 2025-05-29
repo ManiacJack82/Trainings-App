@@ -4,187 +4,67 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trainings App</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    /* Dein CSS bleibt unverändert */
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <h1>💪Trainings App💪</h1>
-  <button id="backButton">Zurück</button>
-  <div id="formTab" class="tab-content active">
-    <div class="custom-section" id="uebungenContainer">
-      <h3>Übung hinzufügen</h3>
-      <input id="neueUebung" placeholder="Name der Übung" />
+<body class="app-page">
+  <div class="app-wrapper">
+
+    <!-- Header mit Titel und Zurück-Button -->
+    <header class="app-header">
+      <h1>Trainings App</h1>
+      <button id="backButton" class="secondary-button">Zurück zur Übersicht</button>
+    </header>
+
+    <!-- Übung hinzufügen -->
+    <section class="exercise-input">
+      <h2>Übung hinzufügen</h2>
+      <input type="text" id="neueUebung" placeholder="Name der Übung" />
       <button id="hinzufuegenUebung">Hinzufügen</button>
-      <button id="toggleUebungen">Übungsliste ein-/ausklappen</button>
-      <ul id="uebungenList"></ul>
-    </div>
-    <form id="trainingForm">
-      <label>Gerät:</label>
-      <select id="geraetSelect"></select>
-      <label>Wiederholungen:</label>
-      <input type="number" id="wdh" min="1" />
-      <label>Gewicht (kg):</label>
-      <input type="number" id="gewicht" min="0" step="0.5" />
-      <button type="submit">Eintragen</button>
-    </form>
-    <table id="tabelle" hidden>
-      <thead>
-        <tr><th>Datum</th><th>Gerät</th><th>Wdh</th><th>Gewicht</th><th>Aktion</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      <button id="toggleUebungen" class="secondary-button">Übungsliste ein-/ausklappen</button>
+      <div class="exercise-list" id="uebungenContainer">
+        <ul id="uebungenList"></ul>
+      </div>
+    </section>
+
+    <!-- Trainingsformular -->
+    <section class="exercise-input">
+      <h2>Neuen Trainingssatz eintragen</h2>
+      <form id="trainingForm">
+        <label for="geraetSelect">Gerät:</label>
+        <select id="geraetSelect"></select>
+
+        <label for="wdh">Wiederholungen:</label>
+        <input type="number" id="wdh" min="1" placeholder="z. B. 12" />
+
+        <label for="gewicht">Gewicht (kg):</label>
+        <input type="number" id="gewicht" min="0" step="0.5" placeholder="z. B. 50" />
+
+        <button type="submit">Eintragen</button>
+      </form>
+    </section>
+
+    <!-- Tabelle mit bisherigen Trainings -->
+    <section class="exercise-list">
+      <table id="tabelle" hidden>
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Gerät</th>
+            <th>Wdh</th>
+            <th>Gewicht</th>
+            <th>Aktion</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">Created by Daniel</footer>
   </div>
-  <script type="module">
-  import { auth, db } from './js/firebase-config.js';
-  import {
-    collection,
-    addDoc,
-    query,
-    where,
-    getDocs,
-    Timestamp
-  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-  const geraetSelect = document.getElementById('geraetSelect');
-  const wdhInput = document.getElementById('wdh');
-  const gewichtInput = document.getElementById('gewicht');
-  const tbody = document.querySelector('#tabelle tbody');
-  const tabelle = document.getElementById('tabelle');
-  const trainingForm = document.getElementById('trainingForm');
-
-  const backButton = document.getElementById('backButton');
-  backButton.onclick = () => {
-    window.location.href = 'app.html';
-  };
-
-  let eintraege = [];
-  let uebungen = [];
-
-  const updateUebungenList = () => {
-    const list = document.getElementById('uebungenList');
-    list.innerHTML = '';
-    uebungen.forEach((uebung, index) => {
-      const li = document.createElement('li');
-      li.textContent = uebung;
-      const btn = document.createElement('button');
-      btn.textContent = '×';
-      btn.title = 'Löschen';
-      btn.onclick = () => {
-        uebungen.splice(index, 1);
-        updateUebungen();
-      };
-      li.appendChild(btn);
-      list.appendChild(li);
-    });
-  };
-
-  const updateUebungen = () => {
-    geraetSelect.innerHTML = '';
-    uebungen.forEach(uebung => {
-      const opt = document.createElement('option');
-      opt.textContent = uebung;
-      opt.value = uebung;
-      geraetSelect.appendChild(opt);
-    });
-    geraetSelect.selectedIndex = -1;
-    updateUebungenList();
-  };
-
-  document.getElementById('hinzufuegenUebung').onclick = () => {
-    const name = document.getElementById('neueUebung').value.trim();
-    if (name && !uebungen.includes(name)) {
-      uebungen.push(name);
-      updateUebungen();
-      document.getElementById('neueUebung').value = '';
-    }
-  };
-
-  document.getElementById('toggleUebungen').onclick = () => {
-    document.getElementById('uebungenContainer').classList.toggle('collapsed');
-  };
-
-  let currentUser = null;
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "login.html"; // Sicherheit: nur eingeloggte Nutzer
-    } else {
-      currentUser = user;
-
-      // Daten aus Firestore laden
-      const q = query(collection(db, "trainings"), where("uid", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-
-      querySnapshot.forEach(doc => {
-        const data = doc.data();
-        eintraege.push(data);
-        if (!uebungen.includes(data.geraet)) {
-          uebungen.push(data.geraet);
-        }
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${data.datum}</td>
-          <td>${data.geraet}</td>
-          <td>${data.wdh}</td>
-          <td>${data.gewicht} kg</td>
-          <td><button onclick="this.closest('tr').remove()">🗑️</button></td>
-        `;
-        tbody.appendChild(row);
-      });
-
-      if (eintraege.length > 0) tabelle.hidden = false;
-      updateUebungen();
-    }
-  });
-
-  geraetSelect.onchange = () => {
-    const eintraegeZuUebung = eintraege.filter(e => e.geraet === geraetSelect.value);
-    if (eintraegeZuUebung.length) {
-      const letzter = eintraegeZuUebung[0];
-      wdhInput.value = letzter.wdh;
-      gewichtInput.value = letzter.gewicht;
-    } else {
-      wdhInput.value = '';
-      gewichtInput.value = '';
-    }
-  };
-
-  trainingForm.onsubmit = async e => {
-    e.preventDefault();
-    const now = new Date();
-    const datum = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-    const geraet = geraetSelect.value;
-    const wdh = Number(wdhInput.value);
-    const gewicht = Number(gewichtInput.value);
-
-    eintraege.unshift({ datum, geraet, wdh, gewicht });
-
-    // In Firestore speichern
-    await addDoc(collection(db, "trainings"), {
-      uid: currentUser.uid,
-      datum,
-      geraet,
-      wdh,
-      gewicht,
-      timestamp: Timestamp.now()
-    });
-
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${datum}</td>
-      <td>${geraet}</td>
-      <td>${wdh}</td>
-      <td>${gewicht} kg</td>
-      <td><button onclick="this.closest('tr').remove()">🗑️</button></td>
-    `;
-    tbody.prepend(row);
-
-    tabelle.hidden = false;
-    trainingForm.reset();
-    geraetSelect.selectedIndex = -1;
-  };
-</script>
+  <!-- Scripte -->
+  <script type="module" src="js/firebase-config.js"></script>
+  <script type="module" src="js/training.js"></script>
+</body>
+</html>
