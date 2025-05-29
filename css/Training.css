@@ -1,6 +1,6 @@
 /* Grundlayout */
 body.app-page {
-  background-color: #1a1a1a;
+  background-color: #000; /* schwarz */
   color: #fff;
   font-family: Arial, sans-serif;
   display: flex;
@@ -29,21 +29,21 @@ body.app-page {
 .app-header h1 {
   margin: 0 0 1rem 0;
   font-size: 2rem;
-  color: #e53935;
+  color: #fff; /* Überschrift weiß */
 }
 
 .secondary-button {
-  background-color: #b71c1c;
-  color: #fff;
+  background-color: #b71c1c; /* rot */
+  color: #fff; /* weiß */
   border: none;
   padding: 0.6rem 1.2rem;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s ease;
   max-width: 150px;
   width: 100%;
   box-sizing: border-box;
+  transition: background-color 0.3s ease;
 }
 
 .secondary-button:hover {
@@ -62,14 +62,14 @@ body.app-page {
 
 /* Überschriften */
 .exercise-input h2 {
-  color: #ff4d4d;
+  color: #fff; /* weiß */
   margin-bottom: 1rem;
   font-weight: normal;
 }
 
 /* Inputs & Selects */
 input, select {
-  background-color: #2a2a2a;
+  background-color: #444; /* grau */
   color: #fff;
   max-width: 100%;
   width: 100%;
@@ -90,14 +90,14 @@ input::placeholder {
 form {
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* volle Breite */
+  align-items: stretch;
   gap: 0.5rem;
 }
 
 /* Buttons */
 button[type="submit"], #hinzufuegenUebung {
-  background-color: #b71c1c;
-  color: white;
+  background-color: #b71c1c; /* rot */
+  color: #fff; /* weiß */
   border: none;
   padding: 0.8rem 1.5rem;
   border-radius: 8px;
@@ -107,7 +107,7 @@ button[type="submit"], #hinzufuegenUebung {
   width: 100%;
   transition: background-color 0.3s ease;
   margin-top: 0.5rem;
-  align-self: flex-start; /* Button linksbündig */
+  align-self: flex-start;
   box-sizing: border-box;
 }
 
@@ -197,5 +197,6 @@ tbody tr:hover {
   user-select: none;
   box-sizing: border-box;
 }
+
 
 
