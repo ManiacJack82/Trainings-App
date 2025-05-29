@@ -119,12 +119,12 @@ body.app-page {
 
 .logout-button {
   width: 100px;
-  padding: 1rem;
+  padding: 0.8rem;
   background-color: #e53935;
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   cursor: pointer;
   text-align: center;
   transition: background-color 0.3s ease;
