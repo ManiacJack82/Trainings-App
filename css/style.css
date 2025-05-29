@@ -131,6 +131,8 @@ body.app-page {
 }
 
 .logout-button {
+  position: fixed;
+  bottom: 48px;
   width: 100px;
   padding: 0.8rem;
   background-color: #e53935;
