@@ -1,184 +1,116 @@
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  deleteDoc,
+  doc,
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Elemente
-  const uebungenList = document.getElementById("uebungenList");
-  const toggleButton = document.getElementById("toggleUebungen");
-  const addUebungBtn = document.getElementById("hinzufuegenUebung");
-  const geraetSelect = document.getElementById("geraetSelect");
-  const gewichtInput = document.getElementById("gewicht");
-  const wdhInput = document.getElementById("wdh");
-  const neueUebungInput = document.getElementById("neueUebung");
-  const trainingForm = document.getElementById("trainingForm");
-  const tabelle = document.getElementById("tabelle");
-  const tabelleBody = tabelle.querySelector("tbody");
-  const backButton = document.getElementById("backButton");
+  const exerciseList = document.getElementById("exercise-list");
+  const toggleButton = document.getElementById("toggle-list");
+  const addBtn = document.getElementById("add-exercise");
+  const exerciseSelect = document.getElementById("exercise-select");
+  const weightInput = document.getElementById("weight-input");
+  const repsInput = document.getElementById("reps-input");
+  const lastValues = document.getElementById("last-values");
 
-  const auth = window.auth;  // aus firebase-config.js exportiert
-  const db = window.db;      // aus firebase-config.js exportiert
-
-  let uebungen = [];
+  let history = {};
+  let exercises = [];
   let userId = null;
-  let history = [];
 
-  backButton.addEventListener("click", () => {
-    window.location.href = "app.html";
+  // Prüfe Login-Status
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      userId = user.uid;
+      console.log("Eingeloggt als:", user.email);
+      loadHistory();
+    } else {
+      alert("Bitte zuerst einloggen!");
+      window.location.href = "login.html";
+    }
   });
 
   toggleButton.addEventListener("click", () => {
-    const isHidden = uebungenList.style.display === "none" || uebungenList.style.display === "";
-    uebungenList.style.display = isHidden ? "block" : "none";
-    toggleButton.textContent = isHidden ? "Übungsliste verbergen" : "Übungsliste anzeigen";
+    const isHidden = exerciseList.style.display === "none";
+    exerciseList.style.display = isHidden ? "block" : "none";
+    toggleButton.textContent = isHidden ? "Übungen verbergen" : "Übungen anzeigen";
   });
 
-  addUebungBtn.addEventListener("click", () => {
-    const neueUebung = neueUebungInput.value.trim();
-    if (!neueUebung) {
-      alert("Bitte gib einen Übungsnamen ein!");
-      return;
-    }
-    if (!uebungen.includes(neueUebung)) {
-      uebungen.push(neueUebung);
-      updateUebungenList();
-      updateGeraetSelect();
-      neueUebungInput.value = "";
-    } else {
-      alert("Diese Übung gibt es bereits!");
-    }
-  });
+  addBtn.addEventListener("click", async () => {
+    const name = exerciseSelect.value;
+    const weight = weightInput.value;
+    const reps = repsInput.value;
 
-  trainingForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const geraet = geraetSelect.value;
-    const wdh = parseInt(wdhInput.value);
-    const gewicht = parseFloat(gewichtInput.value);
-
-    if (!geraet || !wdh || isNaN(wdh) || wdh < 1 || isNaN(gewicht) || gewicht < 0) {
-      alert("Bitte alle Felder korrekt ausfüllen!");
-      return;
-    }
-    if (!userId) {
-      alert("Nicht eingeloggt!");
+    if (!name || !weight || !reps) {
+      alert("Bitte alle Felder ausfüllen!");
       return;
     }
 
-    const datum = new Date().toISOString();
+    const entry = { name, weight, reps, userId, timestamp: new Date() };
 
-    // Trainingsdaten in Firestore speichern
     try {
-      await addDoc(collection(db, "trainings"), {
-        userId,
-        datum,
-        geraet,
-        wdh,
-        gewicht,
-      });
-      alert("Training gespeichert!");
-      loadHistory();  // Neu laden
-      trainingForm.reset();
-    } catch (error) {
-      console.error("Fehler beim Speichern:", error);
-      alert("Fehler beim Speichern");
+      await addDoc(collection(db, "exercises"), entry);
+      history[name] = { weight, reps };
+      updateLastValues(name);
+      loadHistory();
+    } catch (e) {
+      console.error("Fehler beim Speichern:", e);
     }
+
+    exerciseSelect.value = "";
+    weightInput.value = "";
+    repsInput.value = "";
   });
 
-  // Übungenliste updaten
-  function updateUebungenList() {
-    uebungenList.innerHTML = "";
-    uebungen.forEach((uebung, index) => {
-      const li = document.createElement("li");
-      li.textContent = uebung;
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "✖";
-      deleteBtn.className = "delete-btn";
-      deleteBtn.addEventListener("click", () => {
-        uebungen.splice(index, 1);
-        updateUebungenList();
-        updateGeraetSelect();
-      });
-      li.appendChild(deleteBtn);
-      uebungenList.appendChild(li);
-    });
-  }
-
-  // Select-Menü updaten
-  function updateGeraetSelect() {
-    geraetSelect.innerHTML = "";
-    uebungen.forEach((uebung) => {
-      const option = document.createElement("option");
-      option.value = uebung;
-      option.textContent = uebung;
-      geraetSelect.appendChild(option);
-    });
-  }
-
-  // Tabelle updaten mit Firestore Daten
-  async function loadHistory() {
-    if (!userId) return;
-
-    const q = query(collection(db, "trainings"), where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
-
-    history = [];
-    querySnapshot.forEach((docSnap) => {
-      history.push({ id: docSnap.id, ...docSnap.data() });
-    });
-
-    updateTabelle();
-  }
-
-  function updateTabelle() {
-    tabelleBody.innerHTML = "";
-    if (history.length === 0) {
-      tabelle.hidden = true;
-      return;
-    }
-    tabelle.hidden = false;
-
-    history.forEach((eintrag, index) => {
-      const tr = document.createElement("tr");
-
-      const datum = new Date(eintrag.datum).toLocaleDateString();
-
-      tr.innerHTML = `
-        <td>${datum}</td>
-        <td>${eintrag.geraet}</td>
-        <td>${eintrag.wdh}</td>
-        <td>${eintrag.gewicht}</td>
-        <td><button class="delete-btn" data-id="${eintrag.id}">✖</button></td>
+  function updateList() {
+    exerciseList.innerHTML = "";
+    exercises.forEach((ex) => {
+      const item = document.createElement("div");
+      item.className = "exercise-item";
+      item.innerHTML = `
+        <span>${ex.name}: ${ex.weight} kg x ${ex.reps}</span>
+        <button class="delete-btn" data-id="${ex.id}">🗑️</button>
       `;
-
-      tabelleBody.appendChild(tr);
+      exerciseList.appendChild(item);
     });
 
-    tabelleBody.querySelectorAll(".delete-btn").forEach((btn) => {
+    document.querySelectorAll(".delete-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        const docId = btn.getAttribute("data-id");
+        const id = btn.getAttribute("data-id");
         try {
-          await deleteDoc(doc(db, "trainings", docId));
+          await deleteDoc(doc(db, "exercises", id));
           loadHistory();
-        } catch (error) {
-          console.error("Fehler beim Löschen:", error);
-          alert("Fehler beim Löschen");
+        } catch (e) {
+          console.error("Fehler beim Löschen:", e);
         }
       });
     });
   }
 
-  // Auth-Status prüfen und initial Daten laden
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      userId = user.uid;
-      loadHistory();
-    } else {
-      alert("Bitte einloggen");
-      window.location.href = "login.html"; // oder wo dein Login ist
-    }
-  });
+  async function loadHistory() {
+    if (!userId) return;
+    const q = query(collection(db, "exercises"), where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    exercises = [];
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      exercises.push({ id: docSnap.id, ...data });
+      history[data.name] = { weight: data.weight, reps: data.reps };
+    });
+    updateList();
+  }
 
-  // Anfangszustand
-  uebungenList.style.display = "none";
-  toggleButton.textContent = "Übungsliste anzeigen";
-  tabelle.hidden = true;
+  function updateLastValues(name) {
+    if (history[name]) {
+      lastValues.textContent = `Letztes Mal: ${history[name].weight} kg x ${history[name].reps}`;
+    } else {
+      lastValues.textContent = "";
+    }
+  }
 });
+
