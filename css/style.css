@@ -137,7 +137,9 @@ body.app-page {
 
 /* Allgemeine Buttons */
 .app-button {
-  padding: 1rem;
+  padding: 1rem 2rem;
+  width: 250px;              /* Einheitliche Breite */
+  text-align: center;
   background-color: #e53935;
   color: #fff;
   border: none;
