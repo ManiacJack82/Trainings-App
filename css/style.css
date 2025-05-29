@@ -119,7 +119,7 @@ body.app-page {
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
-  border-radius: 5px;
+  border-radius: 15px;
   cursor: pointer;
   width: max-content;
 }
@@ -332,18 +332,6 @@ table {
   border-radius: 10px;
   overflow: hidden;
   font-size: 0.95rem;
-}
-
-.app-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: white;
-  margin-bottom: 1rem;
-}
-
-#logoutButton {
-  margin-top: 0.5rem;
 }
 
 table th,
