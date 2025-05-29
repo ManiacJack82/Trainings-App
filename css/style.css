@@ -141,15 +141,15 @@ body.app-page {
 
 /* Allgemeine Buttons */
 .app-button {
-  padding: 1rem 2rem;
-  width: 400px;              /* Einheitliche Breite */
-  text-align: center;
+  width: 300px;
+  padding: 1rem;
   background-color: #e53935;
   color: #fff;
   border: none;
   border-radius: 8px;
   font-size: 1.1rem;
   cursor: pointer;
+  text-align: center;
   transition: background-color 0.3s ease;
 }
 
