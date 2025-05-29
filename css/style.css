@@ -98,10 +98,10 @@ body.app-page {
 }
 
 .app-wrapper {
-  width: 80%;
-  max-width: 480px; /* Besser für Mobilgeräte */
-  margin: 0 auto;
-  padding: 1rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 @media (max-width: 480px) {
