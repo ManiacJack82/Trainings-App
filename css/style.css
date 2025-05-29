@@ -115,11 +115,11 @@ body.app-page {
 }
 
 .logout-button {
-  background-color: #ff4d4d;
+  background-color: #e53935;
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
-  border-radius: 15px;
+  border-radius: 5px;
   cursor: pointer;
   width: max-content;
 }
