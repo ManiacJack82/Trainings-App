@@ -37,121 +37,154 @@
     </table>
   </div>
   <script type="module">
-    import { auth, db } from './js/firebase-config.js';
-    import {
-      addDoc, collection, serverTimestamp
-    } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+  import { auth, db } from './js/firebase-config.js';
+  import {
+    collection,
+    addDoc,
+    query,
+    where,
+    getDocs,
+    Timestamp
+  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-    const geraetSelect = document.getElementById('geraetSelect');
-    const wdhInput = document.getElementById('wdh');
-    const gewichtInput = document.getElementById('gewicht');
-    const tbody = document.querySelector('#tabelle tbody');
-    const tabelle = document.getElementById('tabelle');
-    const trainingForm = document.getElementById('trainingForm');
-    const backButton = document.getElementById('backButton');
+  const geraetSelect = document.getElementById('geraetSelect');
+  const wdhInput = document.getElementById('wdh');
+  const gewichtInput = document.getElementById('gewicht');
+  const tbody = document.querySelector('#tabelle tbody');
+  const tabelle = document.getElementById('tabelle');
+  const trainingForm = document.getElementById('trainingForm');
 
-    backButton.onclick = () => window.location.href = 'app.html';
+  const backButton = document.getElementById('backButton');
+  backButton.onclick = () => {
+    window.location.href = 'app.html';
+  };
 
-    let eintraege = [];
-    let uebungen = [];
+  let eintraege = [];
+  let uebungen = [];
 
-    document.getElementById('hinzufuegenUebung').onclick = () => {
-      const name = document.getElementById('neueUebung').value.trim();
-      if (name && !uebungen.includes(name)) {
-        uebungen.push(name);
+  const updateUebungenList = () => {
+    const list = document.getElementById('uebungenList');
+    list.innerHTML = '';
+    uebungen.forEach((uebung, index) => {
+      const li = document.createElement('li');
+      li.textContent = uebung;
+      const btn = document.createElement('button');
+      btn.textContent = '×';
+      btn.title = 'Löschen';
+      btn.onclick = () => {
+        uebungen.splice(index, 1);
         updateUebungen();
-        document.getElementById('neueUebung').value = '';
-      }
-    };
+      };
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+  };
 
-    function updateUebungen() {
-      geraetSelect.innerHTML = '';
-      uebungen.forEach(uebung => {
-        const opt = document.createElement('option');
-        opt.textContent = uebung;
-        opt.value = uebung;
-        geraetSelect.appendChild(opt);
-      });
-      geraetSelect.selectedIndex = -1;
-      updateUebungenList();
+  const updateUebungen = () => {
+    geraetSelect.innerHTML = '';
+    uebungen.forEach(uebung => {
+      const opt = document.createElement('option');
+      opt.textContent = uebung;
+      opt.value = uebung;
+      geraetSelect.appendChild(opt);
+    });
+    geraetSelect.selectedIndex = -1;
+    updateUebungenList();
+  };
+
+  document.getElementById('hinzufuegenUebung').onclick = () => {
+    const name = document.getElementById('neueUebung').value.trim();
+    if (name && !uebungen.includes(name)) {
+      uebungen.push(name);
+      updateUebungen();
+      document.getElementById('neueUebung').value = '';
     }
+  };
 
-    function updateUebungenList() {
-      const list = document.getElementById('uebungenList');
-      list.innerHTML = '';
-      uebungen.forEach((uebung, index) => {
-        const li = document.createElement('li');
-        li.textContent = uebung;
-        const btn = document.createElement('button');
-        btn.textContent = '×';
-        btn.title = 'Löschen';
-        btn.onclick = () => {
-          uebungen.splice(index, 1);
-          updateUebungen();
-        };
-        li.appendChild(btn);
-        list.appendChild(li);
-      });
-    }
+  document.getElementById('toggleUebungen').onclick = () => {
+    document.getElementById('uebungenContainer').classList.toggle('collapsed');
+  };
 
-    document.getElementById('toggleUebungen').onclick = () => {
-      document.getElementById('uebungenContainer').classList.toggle('collapsed');
-    };
+  let currentUser = null;
 
-    geraetSelect.onchange = () => {
-      const eintraegeZuUebung = eintraege.filter(e => e.geraet === geraetSelect.value);
-      if (eintraegeZuUebung.length) {
-        const letzter = eintraegeZuUebung[0];
-        wdhInput.value = letzter.wdh;
-        gewichtInput.value = letzter.gewicht;
-      } else {
-        wdhInput.value = '';
-        gewichtInput.value = '';
-      }
-    };
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login.html"; // Sicherheit: nur eingeloggte Nutzer
+    } else {
+      currentUser = user;
 
-    trainingForm.onsubmit = async e => {
-      e.preventDefault();
-      const now = new Date();
-      const datum = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-      const geraet = geraetSelect.value;
-      const wdh = Number(wdhInput.value);
-      const gewicht = Number(gewichtInput.value);
-      const vorherige = eintraege.find(e => e.geraet === geraet);
+      // Daten aus Firestore laden
+      const q = query(collection(db, "trainings"), where("uid", "==", user.uid));
+      const querySnapshot = await getDocs(q);
 
-      let diffWdh = '', diffGewicht = '';
-      if (vorherige) {
-        diffWdh = wdh > vorherige.wdh ? '⬆' : wdh < vorherige.wdh ? '⬇' : '=';
-        diffGewicht = gewicht > vorherige.gewicht ? '⬆' : gewicht < vorherige.gewicht ? '⬇' : '=';
-      }
-
-      const eintrag = { datum, geraet, wdh, gewicht };
-      eintraege.unshift(eintrag);
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${datum}</td>
-        <td>${geraet}</td>
-        <td>${wdh} <span class="diff-arrow">${diffWdh}</span></td>
-        <td>${gewicht} kg <span class="diff-arrow">${diffGewicht}</span></td>
-        <td><button onclick="this.closest('tr').remove()">🔝</button></td>
-      `;
-      tbody.prepend(row);
-
-      tabelle.hidden = false;
-      trainingForm.reset();
-      geraetSelect.selectedIndex = -1;
-
-      if (auth.currentUser) {
-        try {
-          await addDoc(collection(db, 'users', auth.currentUser.uid, 'trainings'), {
-            geraet, wdh, gewicht, timestamp: serverTimestamp()
-          });
-        } catch (err) {
-          console.error('Fehler beim Speichern in Firestore:', err);
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        eintraege.push(data);
+        if (!uebungen.includes(data.geraet)) {
+          uebungen.push(data.geraet);
         }
-      }
-    };
-  </script>
-</body>
-</html>
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${data.datum}</td>
+          <td>${data.geraet}</td>
+          <td>${data.wdh}</td>
+          <td>${data.gewicht} kg</td>
+          <td><button onclick="this.closest('tr').remove()">🗑️</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      if (eintraege.length > 0) tabelle.hidden = false;
+      updateUebungen();
+    }
+  });
+
+  geraetSelect.onchange = () => {
+    const eintraegeZuUebung = eintraege.filter(e => e.geraet === geraetSelect.value);
+    if (eintraegeZuUebung.length) {
+      const letzter = eintraegeZuUebung[0];
+      wdhInput.value = letzter.wdh;
+      gewichtInput.value = letzter.gewicht;
+    } else {
+      wdhInput.value = '';
+      gewichtInput.value = '';
+    }
+  };
+
+  trainingForm.onsubmit = async e => {
+    e.preventDefault();
+    const now = new Date();
+    const datum = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const geraet = geraetSelect.value;
+    const wdh = Number(wdhInput.value);
+    const gewicht = Number(gewichtInput.value);
+
+    eintraege.unshift({ datum, geraet, wdh, gewicht });
+
+    // In Firestore speichern
+    await addDoc(collection(db, "trainings"), {
+      uid: currentUser.uid,
+      datum,
+      geraet,
+      wdh,
+      gewicht,
+      timestamp: Timestamp.now()
+    });
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${datum}</td>
+      <td>${geraet}</td>
+      <td>${wdh}</td>
+      <td>${gewicht} kg</td>
+      <td><button onclick="this.closest('tr').remove()">🗑️</button></td>
+    `;
+    tbody.prepend(row);
+
+    tabelle.hidden = false;
+    trainingForm.reset();
+    geraetSelect.selectedIndex = -1;
+  };
+</script>
