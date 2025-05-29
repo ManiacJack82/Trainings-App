@@ -9,7 +9,7 @@
 <body class="training-page">
   <div class="container">
     <header class="header">
-      <h1>🍅Training🥒</h1>
+      <h1>🛺Training🥒</h1>
       <button id="backButton" class="secondary-button">⬅ Zurück</button>
     </header>
 
@@ -20,7 +20,11 @@
         <input type="text" id="neueUebung" placeholder="Name der Übung" />
         <button id="hinzufuegenUebung" class="btn">Hinzufügen</button>
         <button id="toggleUebungen" class="btn secondary">Liste ein-/ausblenden</button>
-        <ul id="uebungenList" class="list"></ul>
+
+        <!-- Container für die dynamische Übungsliste -->
+        <div id="uebungenContainer" style="display: none;">
+          <ul id="uebungenList" class="list"></ul>
+        </div>
       </section>
 
       <!-- Trainingsformular -->
@@ -65,4 +69,3 @@
   <script type="module" src="js/training.js"></script>
 </body>
 </html>
-
