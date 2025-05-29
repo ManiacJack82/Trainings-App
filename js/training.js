@@ -36,7 +36,7 @@ onAuthStateChanged(auth, (user) => {
     ladeUebungen();
     ladeEintraege();
   } else {
-    window.location.href = "index.html";
+    window.location.href = "APP.html";
   }
 });
 
