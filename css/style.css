@@ -183,7 +183,7 @@ body.app-page {
   background-color: #b71c1c;
 }
 /* Mobile Optimierung */
-@media (max-width: 480px) {
+@media (max-width: 240px) {
   .app-wrapper {
     padding: 0 1rem 4rem;
   }
