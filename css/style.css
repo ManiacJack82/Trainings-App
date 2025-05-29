@@ -163,6 +163,25 @@ body.app-page {
   width: 100%;
 }
 
+/* Logout-button */
+.logout-button {
+  position: flex;
+  bottom: 48px;
+  width: 100px;
+  padding: 0.8rem;
+  background-color: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #b71c1c;
+}
 /* Mobile Optimierung */
 @media (max-width: 480px) {
   .app-wrapper {
