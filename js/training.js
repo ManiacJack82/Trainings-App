@@ -1,157 +1,135 @@
+// js/training.js
 import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  deleteDoc,
-  doc,
-  Timestamp
+  collection, addDoc, query, where, getDocs, deleteDoc, doc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-// DOM-Elemente
-const backButton = document.getElementById("backButton");
-const toggleUebungen = document.getElementById("toggleUebungen");
-const hinzufuegenUebung = document.getElementById("hinzufuegenUebung");
-const neueUebung = document.getElementById("neueUebung");
-const uebungenContainer = document.getElementById("uebungenContainer");
-const uebungenList = document.getElementById("uebungenList");
-const geraetSelect = document.getElementById("geraetSelect");
-const trainingForm = document.getElementById("trainingForm");
-const tabelle = document.getElementById("tabelle");
-const tabelleBody = tabelle.querySelector("tbody");
-
-let currentUser = null;
-
-// Auth-Prüfung
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUser = user;
-    ladeUebungen();
-    ladeEintraege();
-  } else {
+// Warte bis ein Benutzer eingeloggt ist
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    alert("Du bist nicht eingeloggt. Du wirst zur Startseite weitergeleitet.");
     window.location.href = "index.html";
-  }
-});
-
-// Zurück-Button
-backButton.addEventListener("click", () => {
-  signOut(auth).then(() => {
-    window.location.href = "app.html";
-  });
-});
-
-// Übungen hinzufügen
-hinzufuegenUebung.addEventListener("click", async () => {
-  const name = neueUebung.value.trim();
-  if (!name) return;
-
-  await addDoc(collection(db, "exercises"), {
-    name,
-    uid: currentUser.uid
-  });
-
-  neueUebung.value = "";
-  ladeUebungen();
-});
-
-// Übungsliste ein-/ausklappen
-toggleUebungen.addEventListener("click", () => {
-  uebungenContainer.style.display =
-    uebungenContainer.style.display === "none" ? "block" : "none";
-});
-
-// Trainingsformular senden
-trainingForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const name = geraetSelect.value;
-  const wdh = trainingForm["wdh"].value;
-  const gewicht = trainingForm["gewicht"].value;
-
-  if (!name || !wdh || !gewicht) {
-    alert("Bitte alle Felder ausfüllen.");
     return;
   }
 
-  await addDoc(collection(db, "training"), {
-    name,
-    wdh: parseInt(wdh),
-    gewicht: parseFloat(gewicht),
-    uid: currentUser.uid,
-    timestamp: Timestamp.now()
+  console.log("Angemeldet als:", user.email);
+  const uid = user.uid;
+
+  // === DOM-Elemente ===
+  const geraetSelect = document.getElementById("geraetSelect");
+  const trainingForm = document.getElementById("trainingForm");
+  const wdhInput = document.getElementById("wdh");
+  const gewichtInput = document.getElementById("gewicht");
+  const tabelle = document.getElementById("tabelle").querySelector("tbody");
+  const hinzufuegenUebungBtn = document.getElementById("hinzufuegenUebung");
+  const neueUebungInput = document.getElementById("neueUebung");
+  const uebungenList = document.getElementById("uebungenList");
+  const toggleUebungen = document.getElementById("toggleUebungen");
+  const uebungenContainer = document.getElementById("uebungenContainer");
+  const backButton = document.getElementById("backButton");
+
+  // === Initiale Daten ===
+  let uebungen = [];
+
+  // === Navigation zurück zur App ===
+  backButton.addEventListener("click", () => {
+    window.location.href = "app.html";
   });
 
-  trainingForm.reset();
-  ladeEintraege();
+  // === Übungsliste ein-/ausklappen ===
+  toggleUebungen.addEventListener("click", () => {
+    uebungenContainer.style.display = (uebungenContainer.style.display === "none") ? "block" : "none";
+  });
+
+  // === Neue Übung hinzufügen ===
+  hinzufuegenUebungBtn.addEventListener("click", () => {
+    const name = neueUebungInput.value.trim();
+    if (name && !uebungen.includes(name)) {
+      uebungen.push(name);
+      renderUebungen();
+      neueUebungInput.value = "";
+    }
+  });
+
+  function renderUebungen() {
+    geraetSelect.innerHTML = "";
+    uebungenList.innerHTML = "";
+    uebungen.forEach(name => {
+      const option = document.createElement("option");
+      option.textContent = name;
+      geraetSelect.appendChild(option);
+
+      const li = document.createElement("li");
+      li.textContent = name;
+      uebungenList.appendChild(li);
+    });
+  }
+
+  // === Trainingssatz eintragen ===
+  trainingForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const geraet = geraetSelect.value;
+    const wdh = wdhInput.value;
+    const gewicht = gewichtInput.value;
+
+    if (!geraet || !wdh || !gewicht) {
+      alert("Bitte alle Felder ausfüllen!");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "trainings"), {
+        uid,
+        geraet,
+        wdh: Number(wdh),
+        gewicht: Number(gewicht),
+        datum: serverTimestamp()
+      });
+      wdhInput.value = "";
+      gewichtInput.value = "";
+      await ladeTrainings();
+    } catch (err) {
+      console.error("Fehler beim Speichern:", err);
+      alert("Speichern fehlgeschlagen.");
+    }
+  });
+
+  // === Trainingsdaten laden ===
+  async function ladeTrainings() {
+    const q = query(collection(db, "trainings"), where("uid", "==", uid));
+    const snapshot = await getDocs(q);
+
+    const rows = [];
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const datum = data.datum?.toDate().toLocaleDateString() || "-";
+      rows.push(`
+        <tr>
+          <td>${datum}</td>
+          <td>${data.geraet}</td>
+          <td>${data.wdh}</td>
+          <td>${data.gewicht}</td>
+          <td><button class="delete-btn" data-id="${docSnap.id}">🗑️</button></td>
+        </tr>
+      `);
+    });
+
+    tabelle.innerHTML = rows.join("");
+    document.getElementById("tabelle").hidden = snapshot.empty;
+
+    // Löschen-Events binden
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        await deleteDoc(doc(db, "trainings", id));
+        await ladeTrainings();
+      });
+    });
+  }
+
+  // Initiales Laden der Trainingsdaten
+  ladeTrainings();
 });
 
-// Übungen laden
-async function ladeUebungen() {
-  const q = query(
-    collection(db, "exercises"),
-    where("uid", "==", currentUser.uid)
-  );
-  const snapshot = await getDocs(q);
-
-  uebungenList.innerHTML = "";
-  geraetSelect.innerHTML = "";
-
-  snapshot.forEach((doc) => {
-    const { name } = doc.data();
-
-    // Liste
-    const li = document.createElement("li");
-    li.textContent = name;
-    uebungenList.appendChild(li);
-
-    // Select
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = name;
-    geraetSelect.appendChild(option);
-  });
-}
-
-// Trainingseinträge laden
-async function ladeEintraege() {
-  const q = query(
-    collection(db, "training"),
-    where("uid", "==", currentUser.uid)
-  );
-  const snapshot = await getDocs(q);
-
-  tabelle.hidden = snapshot.empty;
-  tabelleBody.innerHTML = "";
-
-  snapshot.forEach((docSnap) => {
-    const { name, wdh, gewicht, timestamp } = docSnap.data();
-    const datum = timestamp.toDate().toLocaleDateString();
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${datum}</td>
-      <td>${name}</td>
-      <td>${wdh}</td>
-      <td>${gewicht}</td>
-      <td><button class="delete-btn" data-id="${docSnap.id}">🗑️</button></td>
-    `;
-    tabelleBody.appendChild(tr);
-  });
-
-  // Delete Buttons aktivieren
-  document.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.getAttribute("data-id");
-      await deleteDoc(doc(db, "training", id));
-      ladeEintraege();
-    });
-  });
-}
 
