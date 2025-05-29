@@ -121,7 +121,7 @@ body.app-page {
   padding: 0.6rem 1.2rem;
   border-radius: 5px;
   cursor: pointer;
-  width: max-content;
+  width: 100%;
 }
 
 .logout-button:hover {
