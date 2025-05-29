@@ -1,4 +1,4 @@
-/* Allgemeine Basis für alle Seiten */
+/* ================= Allgemeine Basis ================= */
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
@@ -99,15 +99,15 @@ body.app-page {
   max-width: 800px;
 }
 
-/* Header jetzt vertikal mit zentriertem Inhalt */
+/* Header */
 .app-header {
   width: 100%;
   display: flex;
-  flex-direction: column;  /* Vertikale Anordnung */
-  align-items: center;     /* Zentriert horizontal */
-  gap: 1rem;               /* Abstand zwischen Überschrift und Button */
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 2rem;
-  text-align: center;      /* Überschrift zentrieren */
+  text-align: center;
 }
 
 .app-header h1 {
@@ -121,7 +121,7 @@ body.app-page {
   padding: 0.6rem 1.2rem;
   border-radius: 5px;
   cursor: pointer;
-  width: max-content; /* Nur so breit wie nötig */
+  width: max-content;
 }
 
 .logout-button:hover {
@@ -135,6 +135,7 @@ body.app-page {
   width: 100%;
 }
 
+/* Allgemeine Buttons */
 .app-button {
   padding: 1rem;
   background-color: #e53935;
@@ -150,10 +151,10 @@ body.app-page {
   background-color: #b71c1c;
 }
 
-/* =============== Footer „Created by Daniel“ =============== */
+/* Footer */
 .app-footer {
   position: fixed;
-  bottom: 24px; /* statt 0, hebt den Text etwas nach oben */
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 10px;
@@ -166,8 +167,11 @@ body.app-page {
   z-index: 1000;
   width: 100%;
   text-align: center;
+}
 
-  /* Layout für Training-Seite */
+/* ================= TRAINING SEITE ================= */
+
+/* Layout für Training */
 .app-main {
   display: flex;
   flex-direction: column;
@@ -180,7 +184,7 @@ body.app-page {
   justify-content: flex-start;
 }
 
-/* Training Button & Zurück Button im oberen Drittel */
+/* Button-Sektion */
 .training-section {
   width: 100%;
   display: flex;
@@ -225,11 +229,14 @@ body.app-page {
 
 .exercise-input form {
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 
-.exercise-input input[type="text"] {
-  flex-grow: 1;
+.exercise-input input[type="text"],
+.exercise-input input[type="number"],
+.exercise-input select {
+  width: 100%;
   padding: 0.7rem 1rem;
   font-size: 1rem;
   border-radius: 6px;
@@ -238,15 +245,22 @@ body.app-page {
   color: #fff;
 }
 
-.exercise-input input[type="text"]::placeholder {
+.exercise-input input::placeholder {
   color: #bbb;
+}
+
+.exercise-input label {
+  margin-top: 0.8rem;
+  display: block;
+  color: #bbb;
+  font-size: 0.95rem;
 }
 
 .exercise-input button {
   background-color: #e53935;
   color: #fff;
   border: none;
-  padding: 0 1.5rem;
+  padding: 0.7rem 1.5rem;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -286,7 +300,7 @@ body.app-page {
   color: #eee;
 }
 
-/* Löschen Button als rotes Quadrat mit abgerundeten Ecken und grauem X */
+/* Löschen-Button */
 .delete-btn {
   background-color: #e53935;
   border: none;
@@ -309,3 +323,29 @@ body.app-page {
   color: #ccc;
 }
 
+/* Tabelle der Trainingseinträge */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+  background-color: #2c2c2c;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 0.95rem;
+}
+
+table th,
+table td {
+  padding: 0.8rem;
+  text-align: center;
+  color: #eee;
+}
+
+table th {
+  background-color: #444;
+  font-weight: bold;
+}
+
+table tr:nth-child(even) {
+  background-color: #333;
+}
