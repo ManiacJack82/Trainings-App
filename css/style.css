@@ -130,7 +130,7 @@ body.app-page {
 }
 
 .logout-button {
-  position: center;
+  position: flex;
   bottom: 48px;
   width: 100px;
   padding: 0.8rem;
