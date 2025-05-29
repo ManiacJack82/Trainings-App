@@ -1,11 +1,9 @@
-// js/training.js
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
   collection, addDoc, query, where, getDocs, deleteDoc, doc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-// Warte bis ein Benutzer eingeloggt ist
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     alert("Du bist nicht eingeloggt. Du wirst zur Startseite weitergeleitet.");
@@ -26,10 +24,9 @@ onAuthStateChanged(auth, async (user) => {
   const neueUebungInput = document.getElementById("neueUebung");
   const uebungenList = document.getElementById("uebungenList");
   const toggleUebungen = document.getElementById("toggleUebungen");
-  const uebungenContainer = document.getElementById("uebungenContainer");
   const backButton = document.getElementById("backButton");
 
-  // === Initiale Daten ===
+  // === Übungen-Array ===
   let uebungen = [];
 
   // === Navigation zurück zur App ===
@@ -37,31 +34,74 @@ onAuthStateChanged(auth, async (user) => {
     window.location.href = "app.html";
   });
 
-  // === Übungsliste ein-/ausklappen ===
+  // === Übungsliste ein-/ausblenden ===
   toggleUebungen.addEventListener("click", () => {
-    uebungenContainer.style.display = (uebungenContainer.style.display === "none") ? "block" : "none";
+    const isVisible = uebungenList.style.display !== "none";
+    uebungenList.style.display = isVisible ? "none" : "block";
   });
 
   // === Neue Übung hinzufügen ===
-  hinzufuegenUebungBtn.addEventListener("click", () => {
+  hinzufuegenUebungBtn.addEventListener("click", async () => {
     const name = neueUebungInput.value.trim();
-    if (name && !uebungen.includes(name)) {
-      uebungen.push(name);
-      renderUebungen();
+    if (!name) return;
+
+    try {
+      await addDoc(collection(db, "uebungen"), {
+        uid,
+        name
+      });
       neueUebungInput.value = "";
+      await ladeUebungen();
+    } catch (err) {
+      console.error("Fehler beim Hinzufügen der Übung:", err);
+      alert("Übung konnte nicht gespeichert werden.");
     }
   });
+
+  // === Übung löschen ===
+  async function loescheUebung(id) {
+    try {
+      await deleteDoc(doc(db, "uebungen", id));
+      await ladeUebungen();
+    } catch (err) {
+      console.error("Fehler beim Löschen der Übung:", err);
+      alert("Übung konnte nicht gelöscht werden.");
+    }
+  }
+
+  // === Übungen laden ===
+  async function ladeUebungen() {
+    const q = query(collection(db, "uebungen"), where("uid", "==", uid));
+    const snapshot = await getDocs(q);
+
+    uebungen = [];
+    snapshot.forEach(docSnap => {
+      uebungen.push({ id: docSnap.id, name: docSnap.data().name });
+    });
+
+    renderUebungen();
+  }
 
   function renderUebungen() {
     geraetSelect.innerHTML = "";
     uebungenList.innerHTML = "";
-    uebungen.forEach(name => {
+
+    uebungen.forEach(({ id, name }) => {
+      // Option für Select
       const option = document.createElement("option");
+      option.value = name;
       option.textContent = name;
       geraetSelect.appendChild(option);
 
+      // Listeintrag mit Löschbutton
       const li = document.createElement("li");
-      li.textContent = name;
+      li.textContent = name + " ";
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "❌";
+      deleteBtn.addEventListener("click", () => loescheUebung(id));
+
+      li.appendChild(deleteBtn);
       uebungenList.appendChild(li);
     });
   }
@@ -118,7 +158,7 @@ onAuthStateChanged(auth, async (user) => {
     tabelle.innerHTML = rows.join("");
     document.getElementById("tabelle").hidden = snapshot.empty;
 
-    // Löschen-Events binden
+    // Löschen-Events
     document.querySelectorAll(".delete-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
@@ -128,8 +168,21 @@ onAuthStateChanged(auth, async (user) => {
     });
   }
 
-  // Initiales Laden der Trainingsdaten
-  ladeTrainings();
+  // === Initialdaten laden ===
+  await ladeUebungen();
+  await ladeTrainings();
 });
 
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /uebungen/{uebungId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
 
+    match /trainings/{trainingId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+  }
+}
