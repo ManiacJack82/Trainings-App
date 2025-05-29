@@ -156,6 +156,12 @@ body.app-page {
   width: 100%;
 }
 
+.app-wrapper {
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+}
+
 /* Allgemeine Buttons */
 .app-button {
   width: 300px;
