@@ -1,4 +1,4 @@
-/* Allgemeines Grundlayout */
+/* Grundlayout */
 body.app-page {
   background-color: #1a1a1a;
   color: #fff;
@@ -17,6 +17,7 @@ body.app-page {
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 0 15px #b71c1c;
+  box-sizing: border-box;
 }
 
 /* Header */
@@ -42,55 +43,58 @@ body.app-page {
   transition: background-color 0.3s ease;
   max-width: 150px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .secondary-button:hover {
   background-color: #ff4d4d;
 }
 
-/* Abschnitt für Übungen und Formular */
+/* Übungsbereich */
 .exercise-input {
   background-color: #2a2a2a;
   padding: 1.5rem;
   border-radius: 12px;
   margin-bottom: 2rem;
   box-shadow: 0 0 12px rgba(183, 28, 28, 0.8);
+  box-sizing: border-box;
 }
 
-/* Überschriften der Sektionen */
+/* Überschriften */
 .exercise-input h2 {
   color: #ff4d4d;
   margin-bottom: 1rem;
   font-weight: normal;
 }
 
-/* Eingabefelder und Selects */
+/* Inputs & Selects */
 input, select {
   background-color: #2a2a2a;
   color: #fff;
-  max-width: 300px;
+  max-width: 100%;
   width: 100%;
   margin: 0.5rem 0 1rem 0;
   padding: 0.6rem 1rem;
   border-radius: 4px;
   border: 1px solid #b71c1c;
   font-size: 1rem;
+  box-sizing: border-box;
 }
 
-/* Platzhalterfarbe */
+/* Placeholder */
 input::placeholder {
   color: #bbb;
 }
 
-/* Formular - Layout vertikal */
+/* Formular Layout */
 form {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch; /* volle Breite */
   gap: 0.5rem;
 }
 
-/* Buttons innerhalb der Form */
+/* Buttons */
 button[type="submit"], #hinzufuegenUebung {
   background-color: #b71c1c;
   color: white;
@@ -103,6 +107,8 @@ button[type="submit"], #hinzufuegenUebung {
   width: 100%;
   transition: background-color 0.3s ease;
   margin-top: 0.5rem;
+  align-self: flex-start; /* Button linksbündig */
+  box-sizing: border-box;
 }
 
 button[type="submit"]:hover, #hinzufuegenUebung:hover {
@@ -115,6 +121,9 @@ button[type="submit"]:hover, #hinzufuegenUebung:hover {
   padding: 1rem;
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(183, 28, 28, 0.8);
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .exercise-list ul {
@@ -130,6 +139,7 @@ button[type="submit"]:hover, #hinzufuegenUebung:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  word-break: break-word;
 }
 
 /* Löschen Button */
@@ -148,18 +158,20 @@ button[type="submit"]:hover, #hinzufuegenUebung:hover {
   user-select: none;
   transition: background-color 0.3s ease;
   padding: 0;
+  box-sizing: border-box;
 }
 
 .delete-btn:hover {
   background-color: #ff4d4d;
 }
 
-/* Trainings-Tabelle */
+/* Tabelle */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
   color: #fff;
+  box-sizing: border-box;
 }
 
 thead {
@@ -183,5 +195,7 @@ tbody tr:hover {
   font-size: 0.8rem;
   margin-top: 2rem;
   user-select: none;
+  box-sizing: border-box;
 }
+
 
