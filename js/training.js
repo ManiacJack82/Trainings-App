@@ -36,14 +36,14 @@ onAuthStateChanged(auth, (user) => {
     ladeUebungen();
     ladeEintraege();
   } else {
-    window.location.href = "APP.html";
+    window.location.href = "index.html";
   }
 });
 
 // Zurück-Button
 backButton.addEventListener("click", () => {
   signOut(auth).then(() => {
-    window.location.href = "index.html";
+    window.location.href = "app.html";
   });
 });
 
