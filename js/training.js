@@ -1,75 +1,133 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const exerciseList = document.getElementById("exercise-list");
-  const toggleButton = document.getElementById("toggle-list");
-  const addBtn = document.getElementById("add-exercise");
-  const exerciseSelect = document.getElementById("exercise-select");
-  const weightInput = document.getElementById("weight-input");
-  const repsInput = document.getElementById("reps-input");
-  const lastValues = document.getElementById("last-values");
+  const uebungenList = document.getElementById("uebungenList");
+  const toggleButton = document.getElementById("toggleUebungen");
+  const addUebungBtn = document.getElementById("hinzufuegenUebung");
+  const geraetSelect = document.getElementById("geraetSelect");
+  const gewichtInput = document.getElementById("gewicht");
+  const wdhInput = document.getElementById("wdh");
+  const neueUebungInput = document.getElementById("neueUebung");
+  const trainingForm = document.getElementById("trainingForm");
+  const tabelle = document.getElementById("tabelle");
+  const tabelleBody = tabelle.querySelector("tbody");
+  const backButton = document.getElementById("backButton");
 
-  let history = {};
-  let exercises = [];
+  let uebungen = [];
+  let history = [];
 
-  // Umschalten der Sichtbarkeit der Übungsliste
-  toggleButton.addEventListener("click", () => {
-    const isHidden = exerciseList.style.display === "none";
-    exerciseList.style.display = isHidden ? "block" : "none";
-    toggleButton.textContent = isHidden ? "Übungen verbergen" : "Übungen anzeigen";
+  // Button Zurück zur Übersicht
+  backButton.addEventListener("click", () => {
+    window.location.href = "app.html";
   });
 
-  // Hinzufügen einer neuen Übung
-  addBtn.addEventListener("click", () => {
-    const name = exerciseSelect.value;
-    const weight = weightInput.value;
-    const reps = repsInput.value;
+  // Übungen ein-/ausklappen
+  toggleButton.addEventListener("click", () => {
+    const isHidden = uebungenList.style.display === "none" || uebungenList.style.display === "";
+    uebungenList.style.display = isHidden ? "block" : "none";
+    toggleButton.textContent = isHidden ? "Übungsliste verbergen" : "Übungsliste anzeigen";
+  });
 
-    if (!name || !weight || !reps) {
-      alert("Bitte alle Felder ausfüllen!");
+  // Neue Übung hinzufügen
+  addUebungBtn.addEventListener("click", () => {
+    const neueUebung = neueUebungInput.value.trim();
+    if (!neueUebung) {
+      alert("Bitte gib einen Übungsnamen ein!");
+      return;
+    }
+    if (!uebungen.includes(neueUebung)) {
+      uebungen.push(neueUebung);
+      updateUebungenList();
+      updateGeraetSelect();
+      neueUebungInput.value = "";
+    } else {
+      alert("Diese Übung gibt es bereits!");
+    }
+  });
+
+  // Trainingsformular absenden
+  trainingForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const geraet = geraetSelect.value;
+    const wdh = parseInt(wdhInput.value);
+    const gewicht = parseFloat(gewichtInput.value);
+
+    if (!geraet || !wdh || isNaN(wdh) || wdh < 1 || isNaN(gewicht) || gewicht < 0) {
+      alert("Bitte alle Felder korrekt ausfüllen!");
       return;
     }
 
-    const entry = { name, weight, reps };
-    exercises.push(entry);
-    history[name] = { weight, reps };
-
-    updateList();
-    updateLastValues(name);
-
-    // Felder zurücksetzen
-    exerciseSelect.value = "";
-    weightInput.value = "";
-    repsInput.value = "";
+    const datum = new Date().toLocaleDateString();
+    const eintrag = { datum, geraet, wdh, gewicht };
+    history.push(eintrag);
+    updateTabelle();
+    trainingForm.reset();
   });
 
-  // Aktualisiert die Liste der Übungen
-  function updateList() {
-    exerciseList.innerHTML = "";
-    exercises.forEach((ex, index) => {
-      const item = document.createElement("div");
-      item.className = "exercise-item";
-      item.innerHTML = `
-        <span>${ex.name}: ${ex.weight} kg x ${ex.reps}</span>
-        <button class="delete-btn" data-index="${index}">🗑️</button>
+  // Liste der Übungen aktualisieren (Anzeige)
+  function updateUebungenList() {
+    uebungenList.innerHTML = "";
+    uebungen.forEach((uebung, index) => {
+      const li = document.createElement("li");
+      li.textContent = uebung;
+      // Optional: Löschbutton hinzufügen
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "✖";
+      deleteBtn.className = "delete-btn";
+      deleteBtn.addEventListener("click", () => {
+        uebungen.splice(index, 1);
+        updateUebungenList();
+        updateGeraetSelect();
+      });
+      li.appendChild(deleteBtn);
+      uebungenList.appendChild(li);
+    });
+  }
+
+  // Select-Menü für Geräte/Übungen aktualisieren
+  function updateGeraetSelect() {
+    geraetSelect.innerHTML = "";
+    uebungen.forEach((uebung) => {
+      const option = document.createElement("option");
+      option.value = uebung;
+      option.textContent = uebung;
+      geraetSelect.appendChild(option);
+    });
+  }
+
+  // Tabelle mit Trainingsdaten aktualisieren und anzeigen
+  function updateTabelle() {
+    tabelleBody.innerHTML = "";
+    if (history.length === 0) {
+      tabelle.hidden = true;
+      return;
+    }
+    tabelle.hidden = false;
+
+    history.forEach((eintrag, index) => {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${eintrag.datum}</td>
+        <td>${eintrag.geraet}</td>
+        <td>${eintrag.wdh}</td>
+        <td>${eintrag.gewicht}</td>
+        <td><button class="delete-btn" data-index="${index}">✖</button></td>
       `;
-      exerciseList.appendChild(item);
+
+      tabelleBody.appendChild(tr);
     });
 
-    // Event Listener für alle löschen-Buttons
-    document.querySelectorAll(".delete-btn").forEach((btn) => {
+    // Löschen Button in der Tabelle
+    tabelleBody.querySelectorAll(".delete-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const index = btn.getAttribute("data-index");
-        exercises.splice(index, 1);
-        updateList();
+        const index = parseInt(btn.getAttribute("data-index"));
+        history.splice(index, 1);
+        updateTabelle();
       });
     });
   }
 
-  // Zeigt die letzten Werte einer Übung an
-  function updateLastValues(name) {
-    if (history[name]) {
-      lastValues.textContent = `Letztes Mal: ${history[name].weight} kg x ${history[name].reps}`;
-    } else {
-      lastValues.textContent = "";
-    }
-  }
+  // Initial Setup: Liste verstecken und leer
+  uebungenList.style.display = "none";
+  toggleButton.textContent = "Übungsliste anzeigen";
+  tabelle.hidden = true;
 });
