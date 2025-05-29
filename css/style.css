@@ -101,7 +101,6 @@ body.app-page {
   width: 100%;
   max-width: 350px; /* Besser für Mobilgeräte */
   margin: 0 auto;
-  padding: 1rem;
 }
 
 @media (max-width: 480px) {
