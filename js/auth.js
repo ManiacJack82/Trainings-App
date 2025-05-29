@@ -21,7 +21,7 @@ loginBtn.addEventListener("click", async () => {
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
-    window.location.href = "training.html";
+    window.location.href = "app.html";
   } catch (error) {
     showMessage("Login fehlgeschlagen: " + error.message);
   }
