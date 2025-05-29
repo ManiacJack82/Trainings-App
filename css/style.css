@@ -99,7 +99,9 @@ body.app-page {
 
 .app-wrapper {
   width: 100%;
-  max-width: 800px;
+  max-width: 480px; /* Besser für Mobilgeräte */
+  margin: 0 auto;
+  padding: 1rem;
 }
 
 /* Header */
